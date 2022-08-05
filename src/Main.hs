@@ -11,9 +11,9 @@ import Graphics.Gloss.Interface.IO.Game
 
 main :: IO ()
 main = do
-    let args = undefined -- take arguments?
+    let args1 = undefined -- take arguments?
     
-    -- init Environment
+    -- init Environment1
     env <- initEnv args
     
     -- init Assets
