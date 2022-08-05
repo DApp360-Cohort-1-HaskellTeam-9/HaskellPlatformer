@@ -10,7 +10,8 @@ data Assets
     { _aPlayer :: [Picture]
     , _aKey    ::  Picture  -- collect keys instead of food
     , _aDoor   :: [Picture] -- locked | unlocked by collecting all keys
-    , _aTile   ::  Picture
+    , _aGrass  ::  Picture
+    , _aBase   ::  Picture
 --  , we can expand as many as we need later
     }
 makeLenses ''Assets
