@@ -14,7 +14,7 @@ main = do
     let args = undefined -- take arguments?
     
     -- init Environment
-    let env = initEnv args
+    env <- initEnv args
     
     -- init Assets
     
