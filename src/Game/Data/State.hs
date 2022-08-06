@@ -27,11 +27,12 @@ makeLenses ''PlayerState
 
 data GameState
     = GameState -- new proposed GameState
-    { _gCurrentLevel :: GameLevel
-    , _gPlayerState  :: PlayerState
-    , _gTotalKeys    :: Int
-    , _gDoorOpen     :: Bool
---  , etc...
+    { _gCurrentLevel  :: GameLevel --This could include the gameover/highscore "level"
+    , _gPlayerState   :: PlayerState
+    , _gTotalKeys     :: Int
+    , _gDoorOpen      :: Bool
+    , _gTimeRemaining :: Int  -- Time limit
+    --  , etc...
     , _gDeltaSec     :: Float
     , _gSec          :: Float
     }

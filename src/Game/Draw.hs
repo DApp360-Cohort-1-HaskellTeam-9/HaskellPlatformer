@@ -19,9 +19,8 @@ renderGame = do
     gs <- get
     env <- ask
     let imgs = -- TODO: Asset management
-            [ _aBase . _eSprites $ env
-            , _aKey . _eSprites $ env
-            ] ++ -- concat to player sprites
+            (_aBaseTiles . _eSprites $ env) ++
+            [_aKey . _eSprites $ env] ++
             (_aPlayer . _eSprites $ env)
     let level = _gCurrentLevel gs
     let playerState = _gPlayerState gs
@@ -51,12 +50,34 @@ updateGame sec = do
     
 
 -- Helper Functions:
-drawTile :: Cell -> Picture -> Picture -> Picture
-drawTile cell tileImg foodImg =
-    uncurry translate (fst cell) (checkImg cell tileImg foodImg)
+--REPLACE !! with LENS?
+renderTile :: Cell -> [Picture] -> Picture
+renderTile (pos, cellType) imgs =
+    let baseImg = imgs !! 0
+        grassImg = imgs !! 1
+        coinImg = imgs !! 2
+        keyImg = imgs !! 3
+        doorCTImg = imgs !! 4
+        doorCMImg = imgs !! 5
+    in
+    uncurry translate (pos) $
+    case cellType of
+     '*' -> baseImg 
+     'a' -> grassImg
+     '%' -> coinImg 
+     'k' -> keyImg
+     't' -> doorCTImg
+     'b' -> doorCMImg
 
-renderTile :: undefined
-renderTile = undefined
+{-
+--Enemies to appear at random times
+renderEnemy :: undefined
+renderEnemy = undefined
+-}
+
+drawTile :: Cell -> Picture -> Picture -> Picture
+drawTile cell tileImg keyImg =
+    uncurry translate (fst cell) (checkImg cell tileImg keyImg)
 
 checkImg :: Cell -> Picture -> Picture -> Picture
 checkImg (_, cellType) tile key =

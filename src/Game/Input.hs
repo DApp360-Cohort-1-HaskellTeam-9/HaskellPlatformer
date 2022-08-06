@@ -53,3 +53,5 @@ handleKeys (EventKey (SpecialKey KeyRight) Up _ _) = do
 handleKeys _ = do
     gs <- get
     return gs
+-- exitGame??
+-- pauseGame??
