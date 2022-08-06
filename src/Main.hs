@@ -1,8 +1,10 @@
 module Main where
 
+import Control.Lens
 import Control.Monad.Reader
 import Control.Monad.RWS
 
+import Game.Data.Environment
 import Game.Draw
 import Game.Init
 import Game.Input
@@ -11,23 +13,21 @@ import Graphics.Gloss.Interface.IO.Game
 
 main :: IO ()
 main = do
-    let args = undefined -- take arguments?
+    let args = [] -- take arguments?
     
-    -- init Environment1
+    -- init Environment
     env <- initEnv args
     
-    -- init Assets
-
-    let window  = undefined
-    let bgColor = undefined
-    let fps     = undefined
+    let window  = InWindow "Haskell Platformer" (1024, 768) (0, 0) -- env ?
+    let bgColor = black
+    let fps     = view eFPS env
     
-    let world = runReader (initState args) env
+    world <- runReaderT (initState args) env
     
-    let draw currState = do
-            (pic, logMessages) <- evalRWST renderGame env currState
+    let draw world = do
+            (scene, logMessages) <- evalRWST renderGame env world
             -- do something with logMessages if needed
-            return pic
+            return scene
     
     let handleEvent event currState = do
             (nextState, logMessages) <- evalRWST (handleKeys event) env currState

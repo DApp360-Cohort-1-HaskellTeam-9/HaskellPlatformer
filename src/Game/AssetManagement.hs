@@ -1,5 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Game.AssetManagement where
 
+import Control.Lens
 import Control.Monad.RWS
 
 import Game.Data.Asset
@@ -12,8 +15,9 @@ loadAssets :: IO Assets
 loadAssets = do
     keyImg     <- loadBMP "./assets/graphics/keyYellow.bmp"
     coinImg    <- loadBMP "./assets/graphics/coin.bmp"
-    bg <- loadBMP "./assets/graphics/SKY_BG_1.bmp" 
     doorImg    <- loadDoor
+    baseImg    <- loadBMP "./assets/graphics/tile.bmp" -- "./assets/graphics/baseCenter.bmp"
+    bg         <- loadBMP "./assets/graphics/SKY_BG_1.bmp"
     playerImgs <- loadPlayers
     baseImgs <- loadBaseTiles
     return Sprites
@@ -23,6 +27,7 @@ loadAssets = do
         , _aBaseTiles  = baseImgs
         , _aCoin   = coinImg
         }
+    
 
 loadPlayers :: IO [Picture]
 loadPlayers = do
@@ -56,13 +61,25 @@ loadLevels = do
     level3 <- readFile "./assets/levels/level3.txt"    
     return $ [level1,level2,level3]
 
-incPlayerSprite :: Float -> RWS Environment [String] GameState Picture
--- it takes sec :: Float, updates player sprite index (GameState),
--- returns current sprite :: Picture from the reader variable
-incPlayerSprite sec = undefined
+getPlayerSprite :: (MonadRWS Environment [String] GameState m) => 
+    m Picture
+getPlayerSprite = do
+    env <- ask
+    
+    let playerSprites = view (eSprites . aPlayer) env
+    playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
+    let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 
+    
+    let for 0 (p:ps) = p
+        for i (p:ps) = for (i - 1) ps
+    return $ for playerSpriteI playerSprites
 
-incDoorSprite :: RWS Environment [String] GameState Picture
--- increments player collected keys (GameState.PlayerState),
--- when collected keys == total keys then unlock door,
--- returns current door sprite (from Assets)
-incDoorSprite = undefined
+getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
+    m Picture
+getDoorSprite = do
+    env <- ask
+    let [doorClosed, doorOpened] = view (eSprites . aDoor) env
+    isOpen <- use gDoorOpen
+    if isOpen
+        then return doorOpened
+        else return doorClosed

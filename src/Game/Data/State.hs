@@ -32,5 +32,8 @@ data GameState
     , _gTotalKeys     :: Int
     , _gDoorOpen      :: Bool
     , _gTimeRemaining :: Int  -- Time limit
+    --  , etc...
+    , _gDeltaSec     :: Float
+    , _gSec          :: Float
     }
 makeLenses ''GameState
