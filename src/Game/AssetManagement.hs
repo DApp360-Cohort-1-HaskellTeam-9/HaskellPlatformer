@@ -9,34 +9,52 @@ import Game.Data.State
 import Graphics.Gloss
 
 loadAssets :: IO Assets
--- loadBMP, readFile, etc.
 loadAssets = do
-    keyImg     <- loadBMP "./assets/graphics/key.bmp"
+    keyImg     <- loadBMP "./assets/graphics/keyYellow.bmp"
+    coinImg    <- loadBMP "./assets/graphics/coin.bmp"
+    bg <- loadBMP "./assets/graphics/SKY_BG_1.bmp" 
     doorImg    <- loadDoor
-    grassImg   <- loadBMP "./assets/graphics/grassMid.bmp"
-    baseImg    <- loadBMP "./assets/graphics/baseCenter.bmp"
     playerImgs <- loadPlayers
+    baseImgs <- loadBaseTiles
     return Sprites
         { _aPlayer = playerImgs
         , _aKey    = keyImg
         , _aDoor   = doorImg
-        , _aGrass  = grassImg
-        , _aBase   = baseImg
+        , _aBaseTiles  = baseImgs
+        , _aCoin   = coinImg
         }
 
 loadPlayers :: IO [Picture]
 loadPlayers = do
-    c1l1 <- loadBMP "./assets/graphics/characters/l/1.bmp"
-    c1l2 <- loadBMP "./assets/graphics/characters/l/1.bmp"
-    c1r1 <- loadBMP "./assets/graphics/characters/l/1.bmp"
-    c1r2 <- loadBMP "./assets/graphics/characters/l/1.bmp"
-    return [c1l1, c1l2, c1r1, c1r2]
+    left1 <- loadBMP "./assets/graphics/characters/left1.bmp"
+    left2 <- loadBMP "./assets/graphics/characters/left2.bmp"
+    left3 <- loadBMP "./assets/graphics/characters/left3.bmp"
+    left4 <- loadBMP "./assets/graphics/characters/left4.bmp"
+    right1 <- loadBMP "./assets/graphics/characters/right1.bmp"
+    right2 <- loadBMP "./assets/graphics/characters/right2.bmp"
+    right3 <- loadBMP "./assets/graphics/characters/right3.bmp"
+    right4 <- loadBMP "./assets/graphics/characters/right4.bmp"
+    --More
+    return $ [left1,left2,left3,left4,right1,right2,right3,right4]
+
+loadBaseTiles :: IO [Picture]
+loadBaseTiles = do
+    grassImg   <- loadBMP "./assets/graphics/grassMid.bmp"
+    baseImg    <- loadBMP "./assets/graphics/baseCenter.bmp"
+    return [grassImg, baseImg]
 
 loadDoor :: IO [Picture]
 loadDoor = do
-    dClose <- loadBMP "./assets/graphics/doorClosed.bmp"
-    dOpen  <- loadBMP "./assets/graphics/doorOpened.bmp"
-    return [dClose, dOpen]
+    doorCMImg <- loadBMP "./assets/graphics/door_closedMid.bmp"
+    doorCTImg <- loadBMP "./assets/graphics/door_closedTop.bmp"
+    return [doorCMImg, doorCTImg]
+
+loadLevels :: IO [String]
+loadLevels = do
+    level1 <- readFile "./assets/levels/level1.txt"
+    level2 <- readFile "./assets/levels/level2.txt"
+    level3 <- readFile "./assets/levels/level3.txt"    
+    return $ [level1,level2,level3]
 
 incPlayerSprite :: Float -> RWS Environment [String] GameState Picture
 -- it takes sec :: Float, updates player sprite index (GameState),

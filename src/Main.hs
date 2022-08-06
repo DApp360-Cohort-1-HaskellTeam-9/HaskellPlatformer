@@ -17,7 +17,7 @@ main = do
     env <- initEnv args
     
     -- init Assets
-    
+
     let window  = undefined
     let bgColor = undefined
     let fps     = undefined
