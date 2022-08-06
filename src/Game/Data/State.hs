@@ -32,5 +32,7 @@ data GameState
     , _gTotalKeys    :: Int
     , _gDoorOpen     :: Bool
 --  , etc...
+    , _gDeltaSec     :: Float
+    , _gSec          :: Float
     }
 makeLenses ''GameState
