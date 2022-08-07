@@ -26,7 +26,7 @@ initState args = do
     return GameState
         { _gCurrentLevel = level
         , _gPlayerState  = initPlayer
-        , _gTotalKeys    = 19
+        , _gTotalKeys    = 3
         , _gDoorOpen     = False
     --  , etc...
         , _gDeltaSec     = 0
@@ -59,7 +59,7 @@ makeRow row y = do
         [ (((fromIntegral x * tileSize) - ((1024 / 2) - (tileSize / 2))
         , (fromIntegral y * tileSize) - ((768 / 2) - (tileSize / 2)))
         , row !! x) -- TODO: get rid of partial functions and list comprehensions
-        | x <- [0 .. length row - 1] 
-        , row !! x == '*' || row !! x == '%' || row !! x == 'a' || row !! x == 't' || row !! x == 'b' || row !! x == 'k'
+        | x <- [0 .. length row - 1]
+        , row !! x /= '.'
         ]
     

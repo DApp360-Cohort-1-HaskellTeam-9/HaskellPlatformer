@@ -13,22 +13,22 @@ import Graphics.Gloss
 
 loadAssets :: IO Assets
 loadAssets = do
-    coinImg    <- loadBMP "./assets/graphics/coin.bmp"
-    grassImg   <- loadBMP "./assets/graphics/grassMid.bmp"
-    baseImg    <- loadBMP "./assets/graphics/baseCenter.bmp"
-    keyImg     <- loadBMP "./assets/graphics/keyYellow.bmp"
-    doorCMImg <- loadBMP "./assets/graphics/door_closedMid.bmp"
-    doorCTImg <- loadBMP "./assets/graphics/door_closedTop.bmp"
-    bg <- loadBMP "./assets/graphics/SKY_BG_1.bmp" 
-    doorImg    <- loadDoor
-    playerImgs <- loadPlayers
+    keyImg    <- loadBMP "./assets/graphics/keyYellow.bmp"
+    coinImg   <- loadBMP "./assets/graphics/coin.bmp"
+    doorImg   <- loadDoor
+    baseImg   <- loadBMP "./assets/graphics/baseCenter.bmp"
+    grassImg  <- loadBMP "./assets/graphics/grassMid.bmp"
+    bgImg     <- loadBMP "./assets/graphics/SKY_BG_1.bmp"
+    playerImg <- loadPlayers
     baseImgs <- loadBaseTiles
     return Sprites
-        { _aPlayer = playerImgs
+        { _aPlayer = playerImg
         , _aKey    = keyImg
         , _aDoor   = doorImg
-        , _aBaseTiles  = baseImgs
+        , _aBase   = baseImg
+        , _aGrass  = grassImg
         , _aCoin   = coinImg
+        , _aBgImg  = bgImg
         }
 
 --TEMPORARY!!!! just to show rendered game for now.

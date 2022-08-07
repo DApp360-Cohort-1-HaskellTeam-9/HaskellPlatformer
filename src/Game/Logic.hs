@@ -14,7 +14,7 @@ removeItem gs =
         pos = _pPosition playerState
     in
         filter
-            (\ cell -> not $ isHit (fst cell) pos && snd cell == '%')
+            (\ cell -> not $ isHit (fst cell) pos && (snd cell == '%' || snd cell == 'k'))
             (_gCurrentLevel gs)
         
     
@@ -26,10 +26,10 @@ updateSpeedY gs =
         (posX, posY) = _pPosition playerState
         (spdX, spdY) = _pSpeed playerState
     in
-        if isCollision gs (posX, posY + spdY) '*'
+        if
+            isCollision gs (posX, posY + spdY) '*' ||
+            isCollision gs (posX, posY + spdY) 'a'
             then negate . abs $ spdY -- only negate upwards movement
-                else if isCollision gs (posX, posY + spdY) 'a'
-                    then negate . abs $ spdY -- only negate upwards movement 
             else max (-5) $ spdY - 0.05 -- TODO: Don't use constants!
         
     
@@ -48,10 +48,11 @@ updateSpeedX gs =
     
 
 -- TODO: MonadRWS
-playerCollision :: GameState -> Point -> CellType -> Maybe Point
-playerCollision gs pnt checkType = for . _gCurrentLevel $ gs where
+playerCollision :: GameState -> Point -> Maybe Point
+playerCollision gs pnt = for . _gCurrentLevel $ gs where
     for [] = Nothing
-    for ((tile, tileType):nextTile) = if tileType == checkType && isHit pnt tile
+    for ((tile, tileType):nextTile) = if (tileType == '*' || tileType == 'a')
+        && isHit pnt tile
         then Just tile
         else for nextTile
     
