@@ -28,6 +28,8 @@ updateSpeedY gs =
     in
         if isCollision gs (posX, posY + spdY) '*'
             then negate . abs $ spdY -- only negate upwards movement
+                else if isCollision gs (posX, posY + spdY) 'a'
+                    then negate . abs $ spdY -- only negate upwards movement 
             else max (-5) $ spdY - 0.05 -- TODO: Don't use constants!
         
     
@@ -67,3 +69,11 @@ isCollision :: GameState -> Point -> CellType -> Bool
 isCollision gs pnt checkType = any
     (\((x, y), tileType) -> tileType == checkType && isHit pnt (x, y))
     (_gCurrentLevel gs)
+
+
+openDoor :: GameState -> GameLevel
+openDoor = undefined
+
+updateKeys :: GameState -> GameState
+updateKeys = undefined
+

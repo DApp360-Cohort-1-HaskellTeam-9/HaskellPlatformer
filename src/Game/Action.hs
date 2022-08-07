@@ -29,9 +29,16 @@ moveX face gs = -- TODO: MonadRWS
             FaceRight -> -32
     in
         case playerCollision gs (next, posY) '*' of
+            Nothing -> case playerCollision gs (next, posY) 'a' of
+                        Nothing -> (next, posY) 
+                        Just tl -> (fst tl + hit, posY)
+            Just tl -> (fst tl + hit, posY)
+
+{-
+        case playerCollision gs (next, posY) '*' of
             Nothing -> (next, posY)
             Just tl -> (fst tl + hit, posY)
-        
+-}      
     
 
 moveY :: GameState -> Point -> Point
@@ -41,10 +48,23 @@ moveY gs pnt =
         (spdX, spdY) = _pSpeed playerState
     in
         case playerCollision gs (fst pnt, snd pnt + spdY) '*' of
+            Nothing -> case playerCollision gs (fst pnt, snd pnt + spdY) 'a' of
+                        Nothing -> (fst pnt, snd pnt + spdY)
+                        Just tl -> if spdY < 0 -- is falling (moving down)
+                            then (fst pnt, snd tl + 32) -- _eTileSize
+                            else pnt
+            Just tl -> if spdY < 0 -- is falling (moving down)
+                            then (fst pnt, snd tl + 32) -- _eTileSize
+                            else pnt
+
+
+{-
+        case playerCollision gs (fst pnt, snd pnt + spdY) '*' of
             Nothing -> (fst pnt, snd pnt + spdY)
             Just tl -> if spdY < 0 -- is falling (moving down)
                 then (fst pnt, snd tl + 32) -- _eTileSize
                 else pnt
+-}
             
         
     

@@ -13,7 +13,7 @@ initEnv args = do
     assets <- loadAssets
     return Environment
         { _eTileSize = 32
-        , _eFPS      = 360 -- smoother on monitors with higher framerate
+        , _eFPS      = 120 -- smoother on monitors with higher framerate
         , _eSprites  = assets
         }
 
@@ -21,7 +21,7 @@ initState :: [String] -> ReaderT Environment IO GameState
 -- may need to take values from Environment?
 initState args = do
     env <- ask
-    level1 <- liftIO . readFile $ "./assets/levels/1.txt"
+    level1 <- liftIO . readFile $ "./assets/levels/level1.txt"
     let level = runReader (prepareData . reverse . lines $ level1) env
     return GameState
         { _gCurrentLevel = level
@@ -59,7 +59,7 @@ makeRow row y = do
         [ (((fromIntegral x * tileSize) - ((1024 / 2) - (tileSize / 2))
         , (fromIntegral y * tileSize) - ((768 / 2) - (tileSize / 2)))
         , row !! x) -- TODO: get rid of partial functions and list comprehensions
-        | x <- [0 .. length row - 1]
-        , row !! x == '*' || row !! x == '%'
+        | x <- [0 .. length row - 1] 
+        , row !! x == '*' || row !! x == '%' || row !! x == 'a' || row !! x == 't' || row !! x == 'b' || row !! x == 'k'
         ]
     

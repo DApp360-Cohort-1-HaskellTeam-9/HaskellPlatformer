@@ -13,11 +13,14 @@ import Graphics.Gloss
 
 loadAssets :: IO Assets
 loadAssets = do
-    keyImg     <- loadBMP "./assets/graphics/keyYellow.bmp"
     coinImg    <- loadBMP "./assets/graphics/coin.bmp"
+    grassImg   <- loadBMP "./assets/graphics/grassMid.bmp"
+    baseImg    <- loadBMP "./assets/graphics/baseCenter.bmp"
+    keyImg     <- loadBMP "./assets/graphics/keyYellow.bmp"
+    doorCMImg <- loadBMP "./assets/graphics/door_closedMid.bmp"
+    doorCTImg <- loadBMP "./assets/graphics/door_closedTop.bmp"
+    bg <- loadBMP "./assets/graphics/SKY_BG_1.bmp" 
     doorImg    <- loadDoor
-    baseImg    <- loadBMP "./assets/graphics/tile.bmp" -- "./assets/graphics/baseCenter.bmp"
-    bg         <- loadBMP "./assets/graphics/SKY_BG_1.bmp"
     playerImgs <- loadPlayers
     baseImgs <- loadBaseTiles
     return Sprites
@@ -27,7 +30,18 @@ loadAssets = do
         , _aBaseTiles  = baseImgs
         , _aCoin   = coinImg
         }
-    
+
+--TEMPORARY!!!! just to show rendered game for now.
+loadImgs :: RWST Environment [String] GameState IO [Picture]
+loadImgs = do
+    coinImg    <- lift $ loadBMP "./assets/graphics/coin.bmp"
+    grassImg   <- lift $ loadBMP "./assets/graphics/grassMid.bmp"
+    baseImg    <- lift $ loadBMP "./assets/graphics/baseCenter.bmp"
+    keyImg     <- lift $ loadBMP "./assets/graphics/keyYellow.bmp"
+    doorCMImg <- lift $ loadBMP "./assets/graphics/door_closedMid.bmp"
+    doorCTImg <- lift $ loadBMP "./assets/graphics/door_closedTop.bmp"
+    bg <- lift $ loadBMP "./assets/graphics/SKY_BG_1.bmp" 
+    return $ [baseImg,grassImg,coinImg, keyImg, doorCTImg, doorCMImg, bg]
 
 loadPlayers :: IO [Picture]
 loadPlayers = do
