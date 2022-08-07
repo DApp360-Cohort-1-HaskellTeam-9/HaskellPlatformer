@@ -30,7 +30,6 @@ initState args = do
         , _gDoorOpen     = False
     --  , etc...
         , _gDeltaSec     = 0
-        , _gSec          = 0
         }
     
 
@@ -39,6 +38,9 @@ initPlayer = PlayerState
     { _pPosition      = (0, 0)
     , _pSpeed         = (0, -15)
     , _pDirection     = (0, 0)
+    , _tmpPos = (0, 0)
+    , _tmpVel = (0, 10)
+    , _tmpDir = (0, -1)
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
     , _pCollectedKeys = 0

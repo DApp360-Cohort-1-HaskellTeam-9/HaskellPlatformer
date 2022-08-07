@@ -16,14 +16,12 @@ import Graphics.Gloss
 
 renderGame :: RWST Environment [String] GameState IO Picture
 renderGame = do
-    gs <- get
     env <- ask
     
-    let level = _gCurrentLevel gs
+    level <- use gCurrentLevel
     tiles <- mapM drawTile level
     
-    let playerState = _gPlayerState gs
-        playerPos   = _pPosition playerState
+    playerPos <- use (gPlayerState . pPosition)
     
     return . pictures $
         view (eSprites . aBgImg) env :
@@ -34,19 +32,24 @@ renderGame = do
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
 updateGame sec = do
     gs <- get
-    let currPlayerState = _gPlayerState gs
-    let nextPlayerState = currPlayerState
-            { _pSpeed = (updateSpeedX gs, updateSpeedY gs)
-            , _pPosition = moveY gs $ moveX (_pHeading currPlayerState) gs
-            }
-    return gs
-        { _gPlayerState  = nextPlayerState
-        , _gCurrentLevel = removeItem gs
-        }
     
+    gDeltaSec .= sec
+    
+    posX <- moveX
+    next <- moveY posX
+    gPlayerState  . pPosition .= next
+    
+    spdX <- updateSpeedX
+    spdY <- updateSpeedY
+    gPlayerState  . pSpeed .= (spdX, spdY)
+    
+    updatedLevel  <- removeItem
+    gCurrentLevel .= updatedLevel
+    
+    nextState <- get
+    return nextState
 
 -- Helper Functions:
---REPLACE !! with LENS?
 renderTile :: (MonadRWS Environment [String] GameState m) =>
     CellType -> m Picture
 renderTile cellType = do
@@ -68,7 +71,7 @@ renderTile cellType = do
         'k' -> keyImg
         't' -> doorTop
         'b' -> doorBottom
-        _ -> circleSolid 0
+        _   -> circle 0
     
 
 {-
@@ -82,35 +85,3 @@ drawTile :: (MonadRWS Environment [String] GameState m) =>
 drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
-
-testRenderPureHelper :: (MonadRWS Environment [String] GameState m) =>
-    m Picture
-testRenderPureHelper = do
-    env <- ask
-    gs <- get
-    tell ["log something"]
-    playerSprite <- getPlayerSprite
-    return . pictures $ []
-
-testRenderIOHelper :: (MonadIO m) =>
-    m ()
-testRenderIOHelper = do
-    liftIO . putStrLn $ ""
-    return ()
-
-testUpdatePureHelper :: (MonadRWS Environment [String] GameState m) =>
-    Float -> m GameState
-testUpdatePureHelper sec = do
-    env <- ask
-    
-    prevSec <- use gSec   -- get gSec
-    gSec    .= sec -- set gSec to sec
-    
-    let deltaSec = sec - prevSec
-    gDeltaSec   .= deltaSec -- set gDeltaSec to sec - prevSec
-    
-    gs <- get
-    let fps = fromIntegral $ view eFPS env
-    gPlayerState . pSpriteIndex %= (+ deltaSec * fps) -- experiment with this
-    
-    return gs
