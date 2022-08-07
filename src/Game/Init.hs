@@ -21,12 +21,12 @@ initState :: [String] -> ReaderT Environment IO GameState
 -- may need to take values from Environment?
 initState args = do
     env <- ask
-    level1 <- liftIO . readFile $ "./assets/levels/1.txt"
+    level1 <- liftIO . readFile $ "./assets/levels/level1.txt"
     let level = runReader (prepareData . reverse . lines $ level1) env
     return GameState
         { _gCurrentLevel = level
         , _gPlayerState  = initPlayer
-        , _gTotalKeys    = 19
+        , _gTotalKeys    = 3
         , _gDoorOpen     = False
     --  , etc...
         , _gDeltaSec     = 0
@@ -60,6 +60,6 @@ makeRow row y = do
         , (fromIntegral y * tileSize) - ((768 / 2) - (tileSize / 2)))
         , row !! x) -- TODO: get rid of partial functions and list comprehensions
         | x <- [0 .. length row - 1]
-        , row !! x == '*' || row !! x == '%'
+        , row !! x /= '.'
         ]
     

@@ -28,7 +28,7 @@ moveX face gs = -- TODO: MonadRWS
             FaceLeft  ->  32
             FaceRight -> -32
     in
-        case playerCollision gs (next, posY) '*' of
+        case playerCollision gs (next, posY) of
             Nothing -> (next, posY)
             Just tl -> (fst tl + hit, posY)
         
@@ -40,7 +40,7 @@ moveY gs pnt =
         playerState  = _gPlayerState gs
         (spdX, spdY) = _pSpeed playerState
     in
-        case playerCollision gs (fst pnt, snd pnt + spdY) '*' of
+        case playerCollision gs (fst pnt, snd pnt + spdY) of
             Nothing -> (fst pnt, snd pnt + spdY)
             Just tl -> if spdY < 0 -- is falling (moving down)
                 then (fst pnt, snd tl + 32) -- _eTileSize

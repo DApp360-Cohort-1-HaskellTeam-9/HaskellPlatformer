@@ -13,19 +13,22 @@ import Graphics.Gloss
 
 loadAssets :: IO Assets
 loadAssets = do
-    keyImg     <- loadBMP "./assets/graphics/keyYellow.bmp"
-    coinImg    <- loadBMP "./assets/graphics/coin.bmp"
-    doorImg    <- loadDoor
-    baseImg    <- loadBMP "./assets/graphics/tile.bmp" -- "./assets/graphics/baseCenter.bmp"
-    bg         <- loadBMP "./assets/graphics/SKY_BG_1.bmp"
-    playerImgs <- loadPlayers
+    keyImg    <- loadBMP "./assets/graphics/keyYellow.bmp"
+    coinImg   <- loadBMP "./assets/graphics/coin.bmp"
+    doorImg   <- loadDoor
+    baseImg   <- loadBMP "./assets/graphics/baseCenter.bmp"
+    grassImg  <- loadBMP "./assets/graphics/grassMid.bmp"
+    bgImg     <- loadBMP "./assets/graphics/SKY_BG_1.bmp"
+    playerImg <- loadPlayers
     baseImgs <- loadBaseTiles
     return Sprites
-        { _aPlayer = playerImgs
+        { _aPlayer = playerImg
         , _aKey    = keyImg
         , _aDoor   = doorImg
-        , _aBaseTiles  = baseImgs
+        , _aBase   = baseImg
+        , _aGrass  = grassImg
         , _aCoin   = coinImg
+        , _aBgImg  = bgImg
         }
     
 

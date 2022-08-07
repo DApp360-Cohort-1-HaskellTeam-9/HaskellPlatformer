@@ -18,21 +18,17 @@ renderGame :: RWST Environment [String] GameState IO Picture
 renderGame = do
     gs <- get
     env <- ask
-    let imgs = -- TODO: Asset management
-            (_aBaseTiles . _eSprites $ env) ++
-            [_aKey . _eSprites $ env] ++
-            (_aPlayer . _eSprites $ env)
+    
     let level = _gCurrentLevel gs
+    tiles <- mapM drawTile level
+    
     let playerState = _gPlayerState gs
-    let playerPos   = _pPosition playerState
-    return $ pictures (
-        (uncurry translate playerPos . color red $ rectangleSolid 32 32) :
-         map (\ cell ->
-            drawTile cell
-            (head imgs) -- TODO: Get rid of partial functions
-            (color yellow $ rectangleSolid 32 32))
-            level
-        )
+        playerPos   = _pPosition playerState
+    
+    return . pictures $
+        view (eSprites . aBgImg) env :
+        uncurry translate playerPos (color red $ rectangleSolid 32 32) :
+        tiles
     
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
@@ -51,23 +47,29 @@ updateGame sec = do
 
 -- Helper Functions:
 --REPLACE !! with LENS?
-renderTile :: Cell -> [Picture] -> Picture
-renderTile (pos, cellType) imgs =
-    let baseImg = imgs !! 0
-        grassImg = imgs !! 1
-        coinImg = imgs !! 2
-        keyImg = imgs !! 3
-        doorCTImg = imgs !! 4
-        doorCMImg = imgs !! 5
-    in
-    uncurry translate (pos) $
-    case cellType of
-     '*' -> baseImg 
-     'a' -> grassImg
-     '%' -> coinImg 
-     'k' -> keyImg
-     't' -> doorCTImg
-     'b' -> doorCMImg
+renderTile :: (MonadRWS Environment [String] GameState m) =>
+    CellType -> m Picture
+renderTile cellType = do
+    env <- ask
+    let baseImg  = view (eSprites . aBase ) env
+        grassImg = view (eSprites . aGrass) env
+        coinImg  = view (eSprites . aCoin ) env
+        keyImg   = view (eSprites . aKey  ) env
+    -- isDoorOpen <- use gDoorOpen
+    -- let doorImg = if isDoorOpen
+    --     then head $ view (eSprites . aDoor ) env
+    --     else last $ view (eSprites . aDoor ) env
+    let doorTop    = last $ view (eSprites . aDoor) env
+    let doorBottom = head $ view (eSprites . aDoor) env
+    return $ case cellType of
+        '*' -> baseImg 
+        'a' -> grassImg
+        '%' -> coinImg 
+        'k' -> keyImg
+        't' -> doorTop
+        'b' -> doorBottom
+        _ -> circleSolid 0
+    
 
 {-
 --Enemies to appear at random times
@@ -75,16 +77,11 @@ renderEnemy :: undefined
 renderEnemy = undefined
 -}
 
-drawTile :: Cell -> Picture -> Picture -> Picture
-drawTile cell tileImg keyImg =
-    uncurry translate (fst cell) (checkImg cell tileImg keyImg)
-
-checkImg :: Cell -> Picture -> Picture -> Picture
-checkImg (_, cellType) tile key =
-    if cellType == '*'
-        then tile
-        else key
-    
+drawTile :: (MonadRWS Environment [String] GameState m) =>
+    Cell -> m Picture
+drawTile (pos, celltYpe) = do
+    tile <- renderTile celltYpe
+    return . uncurry translate pos $ tile
 
 testRenderPureHelper :: (MonadRWS Environment [String] GameState m) =>
     m Picture
