@@ -70,3 +70,11 @@ isCollision :: GameState -> Point -> CellType -> Bool
 isCollision gs pnt checkType = any
     (\((x, y), tileType) -> tileType == checkType && isHit pnt (x, y))
     (_gCurrentLevel gs)
+
+
+openDoor :: GameState -> GameLevel
+openDoor = undefined
+
+updateKeys :: GameState -> GameState
+updateKeys = undefined
+

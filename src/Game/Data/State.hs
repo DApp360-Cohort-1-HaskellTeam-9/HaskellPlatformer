@@ -25,6 +25,7 @@ data PlayerState
     }
 makeLenses ''PlayerState
 
+--Add door position? Need to know for collision to trigger next level
 data GameState
     = GameState -- new proposed GameState
     { _gCurrentLevel  :: GameLevel --This could include the gameover/highscore "level"

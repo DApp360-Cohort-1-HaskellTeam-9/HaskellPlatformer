@@ -13,7 +13,7 @@ initEnv args = do
     assets <- loadAssets
     return Environment
         { _eTileSize = 32
-        , _eFPS      = 360 -- smoother on monitors with higher framerate
+        , _eFPS      = 120 -- smoother on monitors with higher framerate
         , _eSprites  = assets
         }
 
