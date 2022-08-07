@@ -37,7 +37,7 @@ initState args = do
 initPlayer :: PlayerState
 initPlayer = PlayerState
     { _pPosition      = (0, 0)
-    , _pSpeed         = (0, -5)
+    , _pSpeed         = (0, -15)
     , _pDirection     = (0, 0)
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0

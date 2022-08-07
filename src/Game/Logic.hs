@@ -30,7 +30,7 @@ updateSpeedY gs =
             isCollision gs (posX, posY + spdY) '*' ||
             isCollision gs (posX, posY + spdY) 'a'
             then negate . abs $ spdY -- only negate upwards movement
-            else max (-5) $ spdY - 0.05 -- TODO: Don't use constants!
+            else max (-15) $ spdY - 0.5 -- TODO: Don't use constants!
         
     
 
@@ -42,8 +42,8 @@ updateSpeedX gs =
         (spdX, spdY) = _pSpeed playerState
     in
         case dir of
-            (0, 0) -> max 0 $ spdX - 0.05
-            _ -> min 2.5 $ spdX + 0.05
+            (0, 0) -> max 0 $ spdX - 0.5
+            _ -> min 7.5 $ spdX + 0.5
         
     
 

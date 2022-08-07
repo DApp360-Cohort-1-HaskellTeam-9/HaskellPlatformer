@@ -29,7 +29,7 @@ handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = do
     gs <- get
     let currPlayerState = _gPlayerState gs
         nextPlayerState = currPlayerState
-            { _pSpeed = (fst . _pSpeed $ currPlayerState, 5)
+            { _pSpeed = (fst . _pSpeed $ currPlayerState, 15)
             }
     return $ gs { _gPlayerState = nextPlayerState }
 handleKeys (EventKey (SpecialKey KeyLeft)  Up _ _) = do
