@@ -18,6 +18,9 @@ data PlayerState
     { _pPosition      :: XY
     , _pSpeed         :: XY
     , _pDirection     :: XY -- (range from -1 to 1, range from -1 to 1)
+    , _tmpPos :: XY
+    , _tmpVel :: XY
+    , _tmpDir :: XY
     , _pHeading       :: PlayerFacing
     , _pSpriteIndex   :: Float -- increment this using sec :: Float
     , _pCollectedKeys :: Int
@@ -34,7 +37,6 @@ data GameState
     , _gDoorOpen      :: Bool
     , _gTimeRemaining :: Int  -- Time limit
     --  , etc...
-    , _gDeltaSec     :: Float
-    , _gSec          :: Float
+    , _gDeltaSec      :: Float
     }
 makeLenses ''GameState
