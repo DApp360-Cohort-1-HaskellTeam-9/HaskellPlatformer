@@ -24,7 +24,7 @@ renderGame = do
     playerPos <- use (gPlayerState . pPosition)
     
     return . pictures $
-        view (eSprites . aBgImg) env :
+        head (view (eSprites . aBgImg) env) :
         uncurry translate playerPos (color red $ rectangleSolid 32 32) :
         tiles
     
@@ -56,18 +56,18 @@ renderTile cellType = do
     env <- ask
     let baseImg  = view (eSprites . aBase ) env
         grassImg = view (eSprites . aGrass) env
-        coinImg  = view (eSprites . aCoin ) env
+        coinImg  = head $ view (eSprites . aCoin ) env
         keyImg   = view (eSprites . aKey  ) env
     -- isDoorOpen <- use gDoorOpen
     -- let doorImg = if isDoorOpen
     --     then head $ view (eSprites . aDoor ) env
     --     else last $ view (eSprites . aDoor ) env
-    let doorTop    = last $ view (eSprites . aDoor) env
+    let doorTop    = last $ view (eSprites . aDoor) env -- There are 4 images for door (2 open 2 closed). Need to review
     let doorBottom = head $ view (eSprites . aDoor) env
     return $ case cellType of
         '*' -> baseImg 
         'a' -> grassImg
-        '%' -> coinImg 
+        '%' -> coinImg
         'k' -> keyImg
         't' -> doorTop
         'b' -> doorBottom

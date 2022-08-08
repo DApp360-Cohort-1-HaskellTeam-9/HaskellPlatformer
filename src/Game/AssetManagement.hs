@@ -11,75 +11,77 @@ import Game.Data.State
 
 import Graphics.Gloss
 
-loadAssets :: IO Assets
-loadAssets = do
-    keyImg    <- loadBMP "./assets/graphics/keyYellow.bmp"
-    coinImg   <- loadBMP "./assets/graphics/coin.bmp"
+--loadImgs :: RWST Environment [String] GameState IO [Picture]
+
+initAssets :: IO Assets
+initAssets = do
+    keyImg    <- loadBMP "./assets/graphics/items/key.bmp"
+    baseImgs  <- loadBaseTiles
+    coinImg   <- loadCoin
     doorImg   <- loadDoor
-    baseImg   <- loadBMP "./assets/graphics/baseCenter.bmp"
-    grassImg  <- loadBMP "./assets/graphics/grassMid.bmp"
-    bgImg     <- loadBMP "./assets/graphics/SKY_BG_1.bmp"
+    bgImg     <- loadBackgrounds
     playerImg <- loadPlayers
-    baseImgs <- loadBaseTiles
+    baseImgs  <- loadBaseTiles
+
     return Sprites
         { _aPlayer = playerImg
         , _aKey    = keyImg
         , _aDoor   = doorImg
-        , _aBase   = baseImg
-        , _aGrass  = grassImg
+        , _aBase   = last $ baseImgs -- TODO: Is there a better function?
+        , _aGrass  = head $ baseImgs -- TODO: Is there a better function?
         , _aCoin   = coinImg
         , _aBgImg  = bgImg
         }
 
---TEMPORARY!!!! just to show rendered game for now.
-loadImgs :: RWST Environment [String] GameState IO [Picture]
-loadImgs = do
-    coinImg    <- lift $ loadBMP "./assets/graphics/coin.bmp"
-    grassImg   <- lift $ loadBMP "./assets/graphics/grassMid.bmp"
-    baseImg    <- lift $ loadBMP "./assets/graphics/baseCenter.bmp"
-    keyImg     <- lift $ loadBMP "./assets/graphics/keyYellow.bmp"
-    doorCMImg <- lift $ loadBMP "./assets/graphics/door_closedMid.bmp"
-    doorCTImg <- lift $ loadBMP "./assets/graphics/door_closedTop.bmp"
-    bg <- lift $ loadBMP "./assets/graphics/SKY_BG_1.bmp" 
-    return $ [baseImg,grassImg,coinImg, keyImg, doorCTImg, doorCMImg, bg]
+rootDir :: String
+rootDir = "./assets/graphics/"
 
 loadPlayers :: IO [Picture]
 loadPlayers = do
-    left1 <- loadBMP "./assets/graphics/characters/left1.bmp"
-    left2 <- loadBMP "./assets/graphics/characters/left2.bmp"
-    left3 <- loadBMP "./assets/graphics/characters/left3.bmp"
-    left4 <- loadBMP "./assets/graphics/characters/left4.bmp"
-    right1 <- loadBMP "./assets/graphics/characters/right1.bmp"
-    right2 <- loadBMP "./assets/graphics/characters/right2.bmp"
-    right3 <- loadBMP "./assets/graphics/characters/right3.bmp"
-    right4 <- loadBMP "./assets/graphics/characters/right4.bmp"
-    --More
-    return $ [left1,left2,left3,left4,right1,right2,right3,right4]
+    let dir = rootDir ++ "characters/"
+    let imgNames = ["playerLeft1","playerLeft2","playerLeft3","playerLeft4","playerRight1","playerRight2","playerRight3","playerRight4"]
+    playerImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames -- Could also sequence to flip type
+    return playerImgs
+
+loadCoin :: IO [Picture]
+loadCoin = do
+    let dir = rootDir ++ "items/"
+    let imgNames = ["coin"]
+    coinImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
+    return coinImgs
 
 loadBaseTiles :: IO [Picture]
 loadBaseTiles = do
-    grassImg   <- loadBMP "./assets/graphics/grassMid.bmp"
-    baseImg    <- loadBMP "./assets/graphics/baseCenter.bmp"
-    return [grassImg, baseImg]
+    let dir = rootDir ++ "base/"
+    let imgNames = ["grass", "base"]
+    baseImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
+    return baseImgs
 
 loadDoor :: IO [Picture]
 loadDoor = do
-    doorCMImg <- loadBMP "./assets/graphics/door_closedMid.bmp"
-    doorCTImg <- loadBMP "./assets/graphics/door_closedTop.bmp"
-    return [doorCMImg, doorCTImg]
+    let dir = rootDir ++ "door/"
+    let imgNames = ["door_closedMid", "door_closedTop", "door_openMid", "door_openTop"]
+    doorImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
+    return doorImgs
+
+loadBackgrounds :: IO [Picture]
+loadBackgrounds = do
+    let dir = rootDir ++ "backgrounds/"
+    let imgNames = ["skyBackground"]
+    bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
+    return bgImgs
 
 loadLevels :: IO [String]
 loadLevels = do
-    level1 <- readFile "./assets/levels/level1.txt"
-    level2 <- readFile "./assets/levels/level2.txt"
-    level3 <- readFile "./assets/levels/level3.txt"    
-    return $ [level1,level2,level3]
+    let dir = "assets/levels/"
+    let lvlNames = ["level1", "level2", "level3"]
+    levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
+    return levels
 
 getPlayerSprite :: (MonadRWS Environment [String] GameState m) => 
     m Picture
 getPlayerSprite = do
     env <- ask
-    
     let playerSprites = view (eSprites . aPlayer) env
     playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
     let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 

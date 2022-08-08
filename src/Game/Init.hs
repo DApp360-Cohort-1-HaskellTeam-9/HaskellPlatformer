@@ -10,7 +10,7 @@ import Game.Data.State
 
 initEnv :: [String] -> IO Environment
 initEnv args = do
-    assets <- loadAssets
+    assets <- initAssets
     return Environment
         { _eTileSize = 32
         , _eFPS      = 120 -- smoother on monitors with higher framerate

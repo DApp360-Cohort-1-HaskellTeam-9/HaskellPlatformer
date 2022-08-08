@@ -12,8 +12,8 @@ data Assets
     , _aDoor   :: [Picture] -- locked | unlocked by collecting all keys
     , _aBase   ::  Picture
     , _aGrass  ::  Picture 
-    , _aCoin   ::  Picture -- Spinning coin sprites?
-    , _aBgImg  ::  Picture -- different bg image for each level?
+    , _aCoin   ::  [Picture] -- Spinning coin sprites?
+    , _aBgImg  ::  [Picture] -- different bg image for each level?
 --  , we can expand as many as we need later
     }
 makeLenses ''Assets
