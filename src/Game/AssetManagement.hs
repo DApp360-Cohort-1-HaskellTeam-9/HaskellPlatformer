@@ -8,6 +8,7 @@ import Control.Monad.RWS
 import Game.Data.Asset
 import Game.Data.Environment
 import Game.Data.State
+import Data.Maybe
 
 import Graphics.Gloss
 
@@ -91,11 +92,22 @@ getPlayerSprite = do
     return $ for playerSpriteI playerSprites
 
 getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
-    m Picture
+    m (Picture, Picture)
 getDoorSprite = do
     env <- ask
-    let [doorClosed, doorOpened] = view (eSprites . aDoor) env
-    isOpen <- use gDoorOpen
-    if isOpen
-        then return doorOpened
-        else return doorClosed
+    isDoorOpen <- use gDoorOpen
+
+    let doorImgs = (view (eSprites . aDoor) env)
+
+    let (doorTopImg,doorBottomImg) = 
+            case isDoorOpen of
+                True  -> case (doorImgs ^? element 1, doorImgs ^? element 0) of
+                            (Nothing, _)      -> (Nothing, Nothing)
+                            (_, Nothing)      -> (Nothing, Nothing)
+                            (Just x, Just y)  -> (Just x, Just y)
+                False -> case (doorImgs ^? element 3, doorImgs ^? element 2) of
+                            (Nothing, _)      -> (Nothing, Nothing)
+                            (_, Nothing)      -> (Nothing, Nothing)
+                            (Just x, Just y)  -> (Just x, Just y) 
+    return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
+

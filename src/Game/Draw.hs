@@ -4,7 +4,6 @@ module Game.Draw where
 
 import Control.Lens
 import Control.Monad.RWS
-import Data.Maybe
 
 import Game.Action
 import Game.AssetManagement
@@ -44,14 +43,14 @@ updateGame sec = do
     spdY <- updateSpeedY
     gPlayerState  . pSpeed .= (spdX, spdY)
 
+    keys <- incKeys
+    gPlayerState . pCollectedKeys .= keys
+
     updatedLevel  <- removeItem
     gCurrentLevel .= updatedLevel
 
     door <- openDoor    
     gDoorOpen .= door
-
-    keys <- incKeys
-    gPlayerState . pCollectedKeys .= keys
 
     nextState <- get
     return nextState
@@ -69,24 +68,15 @@ renderTile cellType = do
 
     isDoorOpen <- use gDoorOpen
 
-    let (doorTopImg,doorBottomImg) = 
-            case isDoorOpen of
-                True  -> case (doorImgs ^? element 1, doorImgs ^? element 0) of
-                            (Nothing, _)      -> (Nothing, Nothing)
-                            (_, Nothing)      -> (Nothing, Nothing)
-                            (Just x, Just y)  -> (Just x, Just y)
-                False -> case (doorImgs ^? element 3, doorImgs ^? element 2) of
-                            (Nothing, _)      -> (Nothing, Nothing)
-                            (_, Nothing)      -> (Nothing, Nothing)
-                            (Just x, Just y)  -> (Just x, Just y) 
+    doorTup <- getDoorSprite
 
     return $ case cellType of
         '*' -> baseImg 
         '^' -> grassImg
         'c' -> coinImg
         'k' -> fst keyImg
-        't' -> fromJust $ doorTopImg
-        'b' -> fromJust $ doorBottomImg
+        't' -> fst doorTup
+        'b' -> snd doorTup
         _   -> circle 0
 
 
