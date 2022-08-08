@@ -4,6 +4,7 @@ module Game.Draw where
 
 import Control.Lens
 import Control.Monad.RWS
+import Data.Maybe
 
 import Game.Action
 import Game.AssetManagement
@@ -42,10 +43,16 @@ updateGame sec = do
     spdX <- updateSpeedX
     spdY <- updateSpeedY
     gPlayerState  . pSpeed .= (spdX, spdY)
-    
+
     updatedLevel  <- removeItem
     gCurrentLevel .= updatedLevel
-    
+
+    door <- openDoor    
+    gDoorOpen .= door
+
+    keys <- incKeys
+    gPlayerState . pCollectedKeys .= keys
+
     nextState <- get
     return nextState
 
@@ -58,27 +65,30 @@ renderTile cellType = do
         grassImg = view (eSprites . aGrass) env
         coinImg  = head $ view (eSprites . aCoin ) env
         keyImg   = view (eSprites . aKey  ) env
-    -- isDoorOpen <- use gDoorOpen
-    -- let doorImg = if isDoorOpen
-    --     then head $ view (eSprites . aDoor ) env
-    --     else last $ view (eSprites . aDoor ) env
-    let doorTop    = last $ view (eSprites . aDoor) env -- There are 4 images for door (2 open 2 closed). Need to review
-    let doorBottom = head $ view (eSprites . aDoor) env
+        doorImgs = (view (eSprites . aDoor) env)
+
+    isDoorOpen <- use gDoorOpen
+
+    let (doorTopImg,doorBottomImg) = 
+            case isDoorOpen of
+                True  -> case (doorImgs ^? element 1, doorImgs ^? element 0) of
+                            (Nothing, _)      -> (Nothing, Nothing)
+                            (_, Nothing)      -> (Nothing, Nothing)
+                            (Just x, Just y)  -> (Just x, Just y)
+                False -> case (doorImgs ^? element 3, doorImgs ^? element 2) of
+                            (Nothing, _)      -> (Nothing, Nothing)
+                            (_, Nothing)      -> (Nothing, Nothing)
+                            (Just x, Just y)  -> (Just x, Just y) 
+
     return $ case cellType of
         '*' -> baseImg 
-        'a' -> grassImg
-        '%' -> coinImg
-        'k' -> keyImg
-        't' -> doorTop
-        'b' -> doorBottom
+        '^' -> grassImg
+        'c' -> coinImg
+        'k' -> fst keyImg
+        't' -> fromJust $ doorTopImg
+        'b' -> fromJust $ doorBottomImg
         _   -> circle 0
-    
 
-{-
---Enemies to appear at random times
-renderEnemy :: undefined
-renderEnemy = undefined
--}
 
 drawTile :: (MonadRWS Environment [String] GameState m) =>
     Cell -> m Picture

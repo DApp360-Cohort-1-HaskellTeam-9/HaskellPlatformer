@@ -7,6 +7,7 @@ import Control.Monad.RWS
 
 import Game.Data.Environment
 import Game.Data.State
+import Game.Data.Asset
 
 import Graphics.Gloss
 
@@ -15,13 +16,14 @@ removeItem :: (MonadRWS Environment [String] GameState m) =>
 removeItem = do
     env <- ask
     let tileSize = view eTileSize env
+    let itemTiles = view eItemTiles env
     
     currentLv <- use gCurrentLevel
     playerPos <- use (gPlayerState . pPosition)
     
     return $ filter
-        (\ (cell, cellType) -> not ((cellType == '%' || cellType == 'k') &&
-            isHit cell playerPos tileSize)) -- TODO: Rework this logic
+        (\ (cell, cellType) -> not ((cellType `elem` itemTiles) 
+        && isHit cell playerPos tileSize))
         currentLv
     
 
@@ -30,19 +32,20 @@ updateSpeedY :: (MonadRWS Environment [String] GameState m) =>
 updateSpeedY = do
     env <- ask
     let tileSize = view eTileSize env
-    
+    let itemTiles = view eItemTiles env
+
     delta <- use gDeltaSec
     
     (posX, posY) <- use (gPlayerState . pPosition )
     (spdX, spdY) <- use (gPlayerState . pSpeed    )
     (dirX, dirY) <- use (gPlayerState . pDirection)
-    
+
     collideWithGround <- isCollision (posX, posY + spdY) '*'
-    collideWithGrass  <- isCollision (posX, posY + spdY) 'a'
+    collideWithGrass  <- isCollision (posX, posY + spdY) '^'
     return $ if collideWithGround || collideWithGrass
         then negate . abs $ spdY -- only negate upwards movement
         else max (-15) $ spdY - 0.5 -- TODO: Don't use constants!
-    
+
 
 updateSpeedX :: (MonadRWS Environment [String] GameState m) =>
     m Float
@@ -62,36 +65,58 @@ playerCollision pnt = do
     
     level <- use gCurrentLevel
     return . foldr (\ (cell, cellType) next ->
-        if (cellType == '*' || cellType == 'a') &&
+        if (cellType == '*' || cellType == '^') &&
             isHit pnt cell tileSize
             then Just cell
             else next) Nothing $ level
         
-    
-
-isHit :: Point -> Point -> Float -> Bool
-isHit (x1, y1) (x2, y2) tileSize =
-    x1            < x2 + tileSize &&
-    x1 + tileSize > x2            &&
-    y1            < y2 + tileSize &&
-    y1 + tileSize > y2
-
 -- TODO: Do we really need 3 different functions to check for collision?
 isCollision :: (MonadRWS Environment [String] GameState m) =>
     Point -> CellType -> m Bool
 isCollision pnt checkType = do
     env <- ask
-    let tileSize = view eTileSize env
-    
+    let tileSize = view eTileSize env   
     level <- use gCurrentLevel
     return $ any
         (\ (cell, cellType) -> cellType == checkType && isHit pnt cell tileSize)
         level
-    
 
-openDoor :: GameState -> GameLevel
-openDoor = undefined
 
-updateKeys :: GameState -> GameState
-updateKeys = undefined
+isHit :: Point -> Point -> Float -> Bool
+isHit (x1, y1) (x2, y2) tileSize = 
+    (abs (x1-x2) < tileSize && 
+    abs (y1-y2) < tileSize)
+
+
+openDoor :: (MonadRWS Environment [String] GameState m) =>
+    m Bool
+openDoor = do
+    gs <- get
+    collectedKeys   <- use (gPlayerState . pCollectedKeys)
+    totalKeys       <- use gTotalKeys
+    currentLevel    <- use gCurrentLevel
+
+    if collectedKeys >= totalKeys 
+    then return True
+    else return False
+
+    {-
+    then put $ gs & gDoorOpen .~ True -- .~ is setter
+    else put $ gs & gDoorOpen .~ False
+    nextState <- get
+    return nextState
+    -}
+
+incKeys :: (MonadRWS Environment [String] GameState m) => 
+    m Int
+incKeys = do
+    env             <- ask
+    playerPos       <- use (gPlayerState . pPosition)
+    collectedKeys   <- use (gPlayerState . pCollectedKeys)
+    let keyCell = view (eSprites . aKey) env
+    keyFound <- isCollision playerPos (snd keyCell) 
+    return $
+        case keyFound of
+            True  -> collectedKeys + 1
+            False -> collectedKeys
 

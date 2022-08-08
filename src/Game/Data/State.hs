@@ -18,9 +18,9 @@ data PlayerState
     { _pPosition      :: XY
     , _pSpeed         :: XY
     , _pDirection     :: XY -- (range from -1 to 1, range from -1 to 1)
-    , _tmpPos :: XY
-    , _tmpVel :: XY
-    , _tmpDir :: XY
+    , _tmpPos         :: XY
+    , _tmpVel         :: XY
+    , _tmpDir         :: XY
     , _pHeading       :: PlayerFacing
     , _pSpriteIndex   :: Float -- increment this using sec :: Float
     , _pCollectedKeys :: Int
@@ -28,7 +28,6 @@ data PlayerState
     }
 makeLenses ''PlayerState
 
---Add door position? Need to know for collision to trigger next level
 data GameState
     = GameState -- new proposed GameState
     { _gCurrentLevel  :: GameLevel --This could include the gameover/highscore "level"
@@ -36,7 +35,6 @@ data GameState
     , _gTotalKeys     :: Int
     , _gDoorOpen      :: Bool
     , _gTimeRemaining :: Int  -- Time limit
-    --  , etc...
     , _gDeltaSec      :: Float
     }
 makeLenses ''GameState

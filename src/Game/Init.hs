@@ -15,6 +15,8 @@ initEnv args = do
         { _eTileSize = 32
         , _eFPS      = 120 -- smoother on monitors with higher framerate
         , _eSprites  = assets
+        , _eItemTiles = ['c', 'k'] --- c is coin and k is key
+        , _eBaseTiles = ['^', '*'] --- ^ is grass, * is base
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
@@ -24,12 +26,12 @@ initState args = do
     level1 <- liftIO . readFile $ "./assets/levels/level1.txt"
     let level = runReader (prepareData . reverse . lines $ level1) env
     return GameState
-        { _gCurrentLevel = level
-        , _gPlayerState  = initPlayer
-        , _gTotalKeys    = 3
-        , _gDoorOpen     = False
-    --  , etc...
-        , _gDeltaSec     = 0
+        { _gCurrentLevel  = level
+        , _gPlayerState   = initPlayer
+        , _gTotalKeys     = 3
+        , _gDoorOpen      = False
+        , _gDeltaSec      = 0
+        , _gTimeRemaining = 120
         }
     
 

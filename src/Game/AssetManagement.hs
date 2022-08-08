@@ -15,22 +15,21 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg    <- loadBMP "./assets/graphics/items/key.bmp"
-    baseImgs  <- loadBaseTiles
-    coinImg   <- loadCoin
-    doorImg   <- loadDoor
-    bgImg     <- loadBackgrounds
-    playerImg <- loadPlayers
-    baseImgs  <- loadBaseTiles
+    keyImg      <- loadBMP "./assets/graphics/items/key.bmp"
+    coinImgs    <- loadCoin
+    doorImgs    <- loadDoor
+    bgImgs      <- loadBackgrounds
+    playerImgs  <- loadPlayers
+    baseImgs    <- loadBaseTiles
 
     return Sprites
-        { _aPlayer = playerImg
-        , _aKey    = keyImg
-        , _aDoor   = doorImg
+        { _aPlayer = playerImgs
+        , _aKey    = (keyImg, 'k')
+        , _aDoor   = doorImgs
         , _aBase   = last $ baseImgs -- TODO: Is there a better function?
         , _aGrass  = head $ baseImgs -- TODO: Is there a better function?
-        , _aCoin   = coinImg
-        , _aBgImg  = bgImg
+        , _aCoin   = coinImgs
+        , _aBgImg  = bgImgs
         }
 
 rootDir :: String
@@ -60,10 +59,11 @@ loadBaseTiles = do
 loadDoor :: IO [Picture]
 loadDoor = do
     let dir = rootDir ++ "door/"
-    let imgNames = ["door_closedMid", "door_closedTop", "door_openMid", "door_openTop"]
+    let imgNames = ["door_openMid", "door_openTop", "door_closedMid", "door_closedTop"]
     doorImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return doorImgs
 
+--Add more backgrounds later
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
