@@ -55,8 +55,8 @@ updateGame sec = do
 
             nextState <- get
             return nextState
-        
-    
+
+
 
 -- Helper Functions:
 renderTile :: (MonadRWS Environment [String] GameState m) =>
