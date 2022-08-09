@@ -30,17 +30,17 @@ initState args = do
         , _gDoorOpen     = False
     --  , etc...
         , _gDeltaSec     = 0
+        , _gForce        = 10 -- gravity constant for this level
         }
     
 
 initPlayer :: PlayerState
 initPlayer = PlayerState
     { _pPosition      = (0, 0)
-    , _pSpeed         = (0, -15)
-    , _pDirection     = (0, 0)
-    , _tmpPos = (0, 0)
-    , _tmpVel = (0, 10)
-    , _tmpDir = (0, -1)
+    , _pSpeed         = (0, 0)
+    , _pIncSpeed      = (5000, 1000) -- need playtests
+    , _pMaxSpeed      = (500, -1000) -- to tweak these
+    , _pMovement      = MoveStop
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
     , _pCollectedKeys = 0

@@ -99,3 +99,16 @@ getDoorSprite = do
     if isOpen
         then return doorOpened
         else return doorClosed
+    
+
+getCollidables :: [CellType] -- this is a list of collidables cell types
+getCollidables = "*a" -- open to suggestions to improve this function :)
+
+getCoinCellType :: [CellType]
+getCoinCellType = "%"
+
+getKeyCellType :: [CellType]
+getKeyCellType = "k"
+
+getDoorCellType :: [CellType]
+getDoorCellType = "tb"

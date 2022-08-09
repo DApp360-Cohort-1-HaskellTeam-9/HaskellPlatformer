@@ -35,13 +35,7 @@ updateGame sec = do
     
     gDeltaSec .= sec
     
-    posX <- moveX
-    next <- moveY posX
-    gPlayerState  . pPosition .= next
-    
-    spdX <- updateSpeedX
-    spdY <- updateSpeedY
-    gPlayerState  . pSpeed .= (spdX, spdY)
+    movePlayer
     
     updatedLevel  <- removeItem
     gCurrentLevel .= updatedLevel
