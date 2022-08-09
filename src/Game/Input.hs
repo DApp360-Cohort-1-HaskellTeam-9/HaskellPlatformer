@@ -1,7 +1,10 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Game.Input where
 
 import Control.Lens
 import Control.Monad.RWS
+import Control.Lens
 
 import Game.AssetManagement
 import Game.Data.Enum
@@ -11,56 +14,80 @@ import Game.Logic
 
 import Graphics.Gloss.Interface.IO.Game
 
+--TODO: Add text "Press 'p' to continue" or similar. t
+
 handleKeys :: Event -> RWST Environment [String] GameState IO GameState
-handleKeys (EventKey (SpecialKey KeyLeft) Down _ _) = do
-    gs <- get
-    let currPlayerState = _gPlayerState gs
-        nextPlayerState = currPlayerState
-            { _pMovement = MoveLeft
-            , _pHeading = FaceLeft
-            }
-    return $ gs { _gPlayerState = nextPlayerState }
-handleKeys (EventKey (SpecialKey KeyRight) Down _ _) = do
-    gs <- get
-    let currPlayerState = _gPlayerState gs
-        nextPlayerState = currPlayerState
-            { _pMovement = MoveRight
-            , _pHeading = FaceRight
-            }
-    return $ gs { _gPlayerState = nextPlayerState }
-handleKeys (EventKey (SpecialKey KeyUp) Down _ _) = do
-    gs <- get
-    let currPlayerState = _gPlayerState gs
-        nextPlayerState = currPlayerState
-            { _pSpeed = (fst . _pSpeed $ currPlayerState, 2000)
-            }
+handleKeys e = do
+    isPaused <- use gPaused
+    heading  <- use (gPlayerState . pHeading)
+    case e of
+        (EventKey (Char 'p') Down _ _) -> do
+            pauseGame
+            case heading of
+                FaceRight -> stopMoveRight
+                FaceLeft  -> stopMoveLeft
+        _                              -> 
+            case isPaused of
+                True -> return ()
+                False -> case e of 
+                        (EventKey (SpecialKey KeyLeft) Down _ _)  -> 
+                            moveLeft
+                        (EventKey (SpecialKey KeyRight) Down _ _) -> 
+                            moveRight
+                        (EventKey (SpecialKey KeyUp) Down _ _)    -> 
+                            moveUp
+                        (EventKey (SpecialKey KeyLeft) Up _ _)    -> 
+                            stopMoveLeft
+                        (EventKey (SpecialKey KeyRight) Up _ _)   -> 
+                            stopMoveRight
+                        _                                         ->
+                            return ()
+    newState <- get
+    return newState
+
+pauseGame :: (MonadRWS Environment [String] GameState m) => m ()
+pauseGame = do
+    isPaused <- use gPaused
+    case isPaused of
+        False -> gPaused .= True
+        True -> gPaused .= False
+
+moveUp :: (MonadRWS Environment [String] GameState m) => m ()
+moveUp = do
     -- temporary solution for ground checking
     (x, y) <- use (gPlayerState . pPosition)
     let colliders = getCollidables
     hit <- collideWith colliders (x, y - 1)
-    return $ case hit of
-        Nothing -> gs
-        _ -> gs { _gPlayerState = nextPlayerState }
-handleKeys (EventKey (SpecialKey KeyLeft)  Up _ _) = do
-    gs <- get
-    let currPlayerState = _gPlayerState gs
-        stopPlayerMove = currPlayerState
-            { _pMovement = MoveStop
-            }
-    return $ case _pMovement currPlayerState of
-        MoveLeft -> gs { _gPlayerState = stopPlayerMove }
-        _        -> gs
-handleKeys (EventKey (SpecialKey KeyRight) Up _ _) = do
-    gs <- get
-    let currPlayerState = _gPlayerState gs
-        stopPlayerMove = currPlayerState
-            { _pMovement = MoveStop
-            }
-    return $ case _pMovement currPlayerState of
-        MoveRight -> gs { _gPlayerState = stopPlayerMove }
-        _         -> gs
-handleKeys _ = do
-    gs <- get
-    return gs
+    case hit of
+        Nothing -> return ()
+        Just _  -> do
+            (currSpeedX, _) <- use (gPlayerState . pSpeed)
+            gPlayerState . pSpeed .= (currSpeedX , 2000)
+
+moveLeft :: (MonadRWS Environment [String] GameState m) => m ()
+moveLeft = do
+    gPlayerState . pMovement .= MoveLeft
+    gPlayerState . pHeading  .= FaceLeft
+
+moveRight :: (MonadRWS Environment [String] GameState m) => m () 
+moveRight = do
+    gPlayerState . pMovement .= MoveRight
+    gPlayerState . pHeading  .= FaceRight 
+
+stopMoveLeft :: (MonadRWS Environment [String] GameState m) => m () 
+stopMoveLeft = do
+    movement <- use (gPlayerState . pMovement)
+    case movement of
+        MoveLeft -> gPlayerState . pMovement .= MoveStop
+        _        -> return ()
+    
+
+stopMoveRight :: (MonadRWS Environment [String] GameState m) => m () 
+stopMoveRight = do
+    movement <- use (gPlayerState . pMovement)
+    case movement of
+        MoveRight -> gPlayerState . pMovement .= MoveStop
+        _         -> return ()
+    
+
 -- exitGame??
--- pauseGame??

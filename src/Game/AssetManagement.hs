@@ -6,8 +6,10 @@ import Control.Lens
 import Control.Monad.RWS
 
 import Game.Data.Asset
+import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Data.Maybe
 
 import Graphics.Gloss
 
@@ -15,22 +17,24 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg    <- loadBMP "./assets/graphics/items/key.bmp"
-    baseImgs  <- loadBaseTiles
-    coinImg   <- loadCoin
-    doorImg   <- loadDoor
-    bgImg     <- loadBackgrounds
-    playerImg <- loadPlayers
-    baseImgs  <- loadBaseTiles
+    keyImg      <- loadBMP "./assets/graphics/items/key.bmp"
+    txtCont     <- loadBMP "./assets/graphics/text/continue.bmp" 
+    coinImgs    <- loadCoin
+    doorImgs    <- loadDoor
+    bgImgs      <- loadBackgrounds
+    playerImgs  <- loadPlayers
+    baseImgs    <- loadBaseTiles
+
 
     return Sprites
-        { _aPlayer = playerImg
-        , _aKey    = keyImg
-        , _aDoor   = doorImg
-        , _aBase   = last $ baseImgs -- TODO: Is there a better function?
-        , _aGrass  = head $ baseImgs -- TODO: Is there a better function?
-        , _aCoin   = coinImg
-        , _aBgImg  = bgImg
+        { _aPlayer  = playerImgs
+        , _aKey     = (keyImg, 'k')
+        , _aDoor    = doorImgs
+        , _aBase    = last $ baseImgs -- TODO: Is there a better function?
+        , _aGrass   = head $ baseImgs -- TODO: Is there a better function?
+        , _aCoin    = coinImgs
+        , _aBgImg   = bgImgs
+        , _aTxtCont = txtCont
         }
 
 rootDir :: String
@@ -39,7 +43,7 @@ rootDir = "./assets/graphics/"
 loadPlayers :: IO [Picture]
 loadPlayers = do
     let dir = rootDir ++ "characters/"
-    let imgNames = ["playerLeft1","playerLeft2","playerLeft3","playerLeft4","playerRight1","playerRight2","playerRight3","playerRight4"]
+    let imgNames = map (\x -> "player" ++ x ++ "_35x45") ["Left1","Left2","Left3","Left4","Right1","Right2","Right3","Right4"]
     playerImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames -- Could also sequence to flip type
     return playerImgs
 
@@ -60,10 +64,11 @@ loadBaseTiles = do
 loadDoor :: IO [Picture]
 loadDoor = do
     let dir = rootDir ++ "door/"
-    let imgNames = ["door_closedMid", "door_closedTop", "door_openMid", "door_openTop"]
+    let imgNames = ["door_openMid", "door_openTop", "door_closedMid", "door_closedTop"]
     doorImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return doorImgs
 
+--Add more backgrounds later
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
@@ -83,29 +88,39 @@ getPlayerSprite :: (MonadRWS Environment [String] GameState m) =>
 getPlayerSprite = do
     env <- ask
     let playerSprites = view (eSprites . aPlayer) env
-    playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
-    let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 
+    -- playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
+    -- let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 
     
-    let for 0 (p:ps) = p
-        for i (p:ps) = for (i - 1) ps
-    return $ for playerSpriteI playerSprites
+    -- let for 0 (p:ps) = p
+    --     for i (p:ps) = for (i - 1) ps
+    -- return $ for playerSpriteI playerSprites
+    face <- use (gPlayerState . pHeading)
+    return $ case face of
+        FaceRight -> last playerSprites
+        FaceLeft  -> head playerSprites
+    
 
 getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
-    m Picture
+    m (Picture, Picture)
 getDoorSprite = do
     env <- ask
-    let [doorClosed, doorOpened] = view (eSprites . aDoor) env
-    isOpen <- use gDoorOpen
-    if isOpen
-        then return doorOpened
-        else return doorClosed
-    
+    isDoorOpen <- use gDoorOpen
+    let doorImgs = (view (eSprites . aDoor) env)
+    let (doorTopImg,doorBottomImg) = 
+            case isDoorOpen of
+                True  -> case   (doorImgs ^? element 1, doorImgs ^? element 0) of
+                                (Just x, Just y)  -> (Just x, Just y)
+                                (_,_)             -> (Nothing, Nothing)       
+                False -> case   (doorImgs ^? element 3, doorImgs ^? element 2) of
+                                (Just x, Just y)  -> (Just x, Just y)     
+                                (_,_)             -> (Nothing, Nothing)   
+    return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
-getCollidables = "*a" -- open to suggestions to improve this function :)
+getCollidables = "*^" -- open to suggestions to improve this function :)
 
 getCoinCellType :: [CellType]
-getCoinCellType = "%"
+getCoinCellType = "c"
 
 getKeyCellType :: [CellType]
 getKeyCellType = "k"

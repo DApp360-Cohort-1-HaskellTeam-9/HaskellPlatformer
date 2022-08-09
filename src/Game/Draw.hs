@@ -16,32 +16,41 @@ import Graphics.Gloss
 
 renderGame :: RWST Environment [String] GameState IO Picture
 renderGame = do
-    env <- ask
-    
-    level <- use gCurrentLevel
-    tiles <- mapM drawTile level
-    
-    playerPos <- use (gPlayerState . pPosition)
-    
-    return . pictures $
-        head (view (eSprites . aBgImg) env) :
-        uncurry translate playerPos (color red $ rectangleSolid 32 32) :
-        tiles
+    env          <- ask
+    level        <- use gCurrentLevel
+    tiles        <- mapM drawTile level
+    playerPos    <- use (gPlayerState . pPosition)
+    playerSprite <- getPlayerSprite
+    continue     <- renderContinue
+    return . pictures $ 
+        head (view (eSprites . aBgImg) env) : 
+        uncurry translate playerPos playerSprite : 
+        tiles ++ [continue]
     
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
 updateGame sec = do
     gs <- get
     
-    gDeltaSec .= sec
+    gDeltaSec .= sec -- it's okay to always set this into state
+                     -- might need this for other screen states
+                     -- value should be 1/FPS normally
     
-    movePlayer
+    paused <- use gPaused
     
-    updatedLevel  <- removeItem
-    gCurrentLevel .= updatedLevel
+    case paused of
+        True -> 
+            return gs
+        False -> do
+            movePlayer
+
+            updatedLevel  <- removeItem
+            gCurrentLevel .= updatedLevel
+            
+            nextState <- get
+            return nextState
+        
     
-    nextState <- get
-    return nextState
 
 -- Helper Functions:
 renderTile :: (MonadRWS Environment [String] GameState m) =>
@@ -52,30 +61,35 @@ renderTile cellType = do
         grassImg = view (eSprites . aGrass) env
         coinImg  = head $ view (eSprites . aCoin ) env
         keyImg   = view (eSprites . aKey  ) env
-    -- isDoorOpen <- use gDoorOpen
-    -- let doorImg = if isDoorOpen
-    --     then head $ view (eSprites . aDoor ) env
-    --     else last $ view (eSprites . aDoor ) env
-    let doorTop    = last $ view (eSprites . aDoor) env -- There are 4 images for door (2 open 2 closed). Need to review
-    let doorBottom = head $ view (eSprites . aDoor) env
+        doorImgs = (view (eSprites . aDoor) env)
+
+    isDoorOpen <- use gDoorOpen
+
+    doorTup <- getDoorSprite
+
     return $ case cellType of
         '*' -> baseImg 
-        'a' -> grassImg
-        '%' -> coinImg
-        'k' -> keyImg
-        't' -> doorTop
-        'b' -> doorBottom
-        _   -> circle 0
-    
-
-{-
---Enemies to appear at random times
-renderEnemy :: undefined
-renderEnemy = undefined
--}
+        '^' -> grassImg
+        'c' -> coinImg
+        'k' -> fst keyImg
+        't' -> fst doorTup
+        'b' -> snd doorTup
+        _   -> circle 0 -- should never reach here
 
 drawTile :: (MonadRWS Environment [String] GameState m) =>
     Cell -> m Picture
 drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
+
+--TEXT : uncurry translate pos $ scale 0.2 0.2 $ text "TESTING 123!"
+
+renderContinue :: (MonadRWS Environment [String] GameState m) =>
+    m Picture
+renderContinue = do
+    env      <- ask
+    paused   <- use gPaused
+    let continue = view (eSprites . aTxtCont) env
+    case paused of
+        True  -> return $ continue
+        False -> return $ pictures []

@@ -13,8 +13,11 @@ initEnv args = do
     assets <- initAssets
     return Environment
         { _eTileSize = 32
-        , _eFPS      = 120 -- smoother on monitors with higher framerate
+        , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
+                           -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
         , _eSprites  = assets
+        , _eItemTiles = ['c', 'k'] --- c is coin and k is key
+        , _eBaseTiles = ['^', '*'] --- ^ is grass, * is base
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
@@ -24,13 +27,14 @@ initState args = do
     level1 <- liftIO . readFile $ "./assets/levels/level1.txt"
     let level = runReader (prepareData . reverse . lines $ level1) env
     return GameState
-        { _gCurrentLevel = level
-        , _gPlayerState  = initPlayer
-        , _gTotalKeys    = 3
-        , _gDoorOpen     = False
-    --  , etc...
-        , _gDeltaSec     = 0
-        , _gForce        = 10 -- gravity constant for this level
+        { _gCurrentLevel  = level
+        , _gPlayerState   = initPlayer
+        , _gTotalKeys     = 3
+        , _gDoorOpen      = False
+        , _gPaused        = False
+        , _gTimeRemaining = 120
+        , _gDeltaSec      = 0
+        , _gForce         = 10 -- gravity constant for this level
         }
     
 
