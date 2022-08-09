@@ -17,10 +17,9 @@ data PlayerState
     = PlayerState
     { _pPosition      :: XY
     , _pSpeed         :: XY
-    , _pDirection     :: XY -- (range from -1 to 1, range from -1 to 1)
-    , _tmpPos         :: XY
-    , _tmpVel         :: XY
-    , _tmpDir         :: XY
+    , _pIncSpeed      :: XY
+    , _pMaxSpeed      :: XY
+    , _pMovement      :: PlayerMovement
     , _pHeading       :: PlayerFacing
     , _pSpriteIndex   :: Float -- increment this using sec :: Float
     , _pCollectedKeys :: Int
@@ -33,9 +32,10 @@ data GameState
     { _gCurrentLevel  :: GameLevel --This could include the gameover/highscore "level"
     , _gPlayerState   :: PlayerState
     , _gTotalKeys     :: Int
+    , _gPaused        :: Bool
     , _gDoorOpen      :: Bool
     , _gTimeRemaining :: Int  -- Time limit
     , _gDeltaSec      :: Float
-    , _gPaused        :: Bool
+    , _gForce         :: Float
     }
 makeLenses ''GameState

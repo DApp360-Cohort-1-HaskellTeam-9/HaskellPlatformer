@@ -5,6 +5,7 @@ module Game.Action where
 import Control.Lens
 import Control.Monad.RWS
 
+import Game.AssetManagement
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
@@ -12,57 +13,70 @@ import Game.Logic
 
 import Graphics.Gloss
 
-move :: (MonadRWS Environment [String] GameState m) =>
-    m Point
-move = undefined -- do
-    -- delta <- use gDeltaSec
-    -- (posX, posY) <- use (gPlayerState . tmpPos)
-    -- (velX, velY) <- use (gPlayerState . tmpVel)
-    -- (dirX, dirY) <- use (gPlayerState . tmpDir)
-    -- let posX' = posX + velX * dirX * delta
-    -- let posY' = posY + velY * dirY * delta
-    -- return (posX', posY')
+movePlayer :: (MonadRWS Environment [String] GameState m) =>
+    m ()
+movePlayer = do
+    env <- ask
+    let tileSize = view eTileSize env
+    
+    (posX, posY) <- use (gPlayerState . pPosition)
+    (pos', spd') <- calcNextPlayerPosSpd
+    
+    let (posX', posY') = pos' -- next position candidate
+    let (spdX', spdY') = spd' -- next speed candidate
+    
+    -- check for collisions
+    let colliders = getCollidables
+    -- must be calculated independently for each axis
+    hitX <- collideWith colliders (posX', posY)
+    hitY <- collideWith colliders (posX, posY')
+    
+    -- recalculate position and speed
+    face <- use (gPlayerState . pHeading)
+    let dirX = case face of
+            FaceLeft -> -1
+            FaceRight -> 1
+    let dirY = signum spdY'
+    let (posX'', spdX'') = case hitX of -- reset speed on collision
+            Just (x, _) -> (x - tileSize * dirX, 0)
+            Nothing     -> (posX', spdX')
+    let (posY'', spdY'') = case hitY of -- only negate upwards movement
+            Just (_, y) -> (y - tileSize * dirY, negate . abs $ spdY')
+            Nothing     -> (posY', spdY')
+    
+    -- update player position and speed
+    gPlayerState . pPosition .= (posX'', posY'')
+    gPlayerState . pSpeed    .= (spdX'', spdY'')
+
+calcNextPlayerPosSpd :: (MonadRWS Environment [String] GameState m) =>
+    m (Point, Point)
+calcNextPlayerPosSpd = do
+    delta <- use gDeltaSec
+    
+    (posX, posY) <- use (gPlayerState . pPosition) -- initial position
+    (spdX, spdY) <- use (gPlayerState . pSpeed   ) -- initial speed
+    (incX, incY) <- use (gPlayerState . pIncSpeed) -- parameters
+    (maxX, maxY) <- use (gPlayerState . pMaxSpeed) -- parameters
+    
+    -- current player X-axis state
+    movement     <- use (gPlayerState . pMovement)
+    face         <- use (gPlayerState . pHeading )
+    
+    g <- use gForce
+    let spdX' = case movement of
+            MoveStop -> max    0 $ spdX - incX * delta
+            _        -> min maxX $ spdX + incX * delta
+    let spdY' =         max maxY $ spdY - incY * delta * g
+    
+    -- calculate next position
+    let posX' = case face of
+            FaceLeft -> -spdX' * delta + posX
+            FaceRight -> spdX' * delta + posX
+    let posY' =          spdY' * delta + posY
+    
+    let nextPos = (posX', posY')
+    let nextSpd = (spdX', spdY')
+    return (nextPos, nextSpd)
 
 jump :: undefined
 jump = undefined
-
-moveX :: (MonadRWS Environment [String] GameState m) =>
-    m Point
-moveX = do
-    env <- ask
-    let tileSize = view eTileSize env
-    
-    face <- use (gPlayerState . pHeading)
-    
-    (posX, posY) <- use (gPlayerState . pPosition)
-    (spdX, spdY) <- use (gPlayerState . pSpeed)
-    
-    let next = case face of
-            FaceLeft -> -spdX + posX
-            FaceRight -> spdX + posX
-    let hit = case face of
-            FaceLeft  ->  tileSize
-            FaceRight -> -tileSize
-    
-    collision <- playerCollision (next, posY)
-    return $ case collision of
-        Nothing -> (next, posY)
-        Just tl -> (fst tl + hit, posY)
-    
-
-moveY :: (MonadRWS Environment [String] GameState m) =>
-    Point -> m Point
-moveY pnt = do
-    env <- ask
-    let tileSize = view eTileSize env
-    
-    (spdX, spdY) <- use (gPlayerState . pSpeed)
-    
-    collision <- playerCollision (fst pnt, snd pnt + spdY)
-    return $ case collision of
-        Nothing -> (fst pnt, snd pnt + spdY)
-        Just tl -> if spdY < 0 -- is falling (moving down)
-            then (fst pnt, snd tl + tileSize)
-            else pnt
-        
-    
