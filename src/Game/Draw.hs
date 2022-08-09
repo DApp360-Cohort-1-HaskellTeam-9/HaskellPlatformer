@@ -34,7 +34,7 @@ updateGame sec = do
     paused <- use gPaused
 
     case paused of
-        True -> do
+        True -> 
             return gs
         False -> do
             gDeltaSec .= sec
@@ -98,7 +98,5 @@ renderContinue = do
     paused   <- use gPaused
     let continue = view (eSprites . aTxtCont) env
     case paused of
-        True ->
-            return $ continue
-        False -> 
-            return . pictures $ []
+        True  -> return $ continue
+        False -> return $ pictures []
