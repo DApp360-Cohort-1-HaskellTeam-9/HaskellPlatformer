@@ -13,10 +13,9 @@ initEnv args = do
     assets <- initAssets
     return Environment
         { _eTileSize = 32
-        , _eFPS      = 120 -- smoother on monitors with higher framerate
+        , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
+                           -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
         , _eSprites  = assets
-        , _eItemTiles = ['c', 'k'] --- c is coin and k is key
-        , _eBaseTiles = ['^', '*'] --- ^ is grass, * is base
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
@@ -30,20 +29,20 @@ initState args = do
         , _gPlayerState   = initPlayer
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
-        , _gDeltaSec      = 0
-        , _gTimeRemaining = 120
         , _gPaused        = False
+        , _gTimeRemaining = 120
+        , _gDeltaSec      = 0
+        , _gForce         = 10 -- gravity constant for this level
         }
     
 
 initPlayer :: PlayerState
 initPlayer = PlayerState
     { _pPosition      = (0, 0)
-    , _pSpeed         = (0, -15)
-    , _pDirection     = (0, 0)
-    , _tmpPos = (0, 0)
-    , _tmpVel = (0, 10)
-    , _tmpDir = (0, -1)
+    , _pSpeed         = (0, 0)
+    , _pIncSpeed      = (5000, 1000) -- need playtests
+    , _pMaxSpeed      = (500, -1000) -- to tweak these
+    , _pMovement      = MoveStop
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
     , _pCollectedKeys = 0

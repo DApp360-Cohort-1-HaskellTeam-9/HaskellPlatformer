@@ -23,41 +23,40 @@ renderGame = do
     playerSprite <- getPlayerSprite
     continue     <- renderContinue
     return . pictures $ 
-     head (view (eSprites . aBgImg) env) : 
-     uncurry translate playerPos playerSprite : 
-     tiles ++ [continue]
+        head (view (eSprites . aBgImg) env) : 
+        uncurry translate playerPos playerSprite : 
+        tiles ++ [continue]
+    
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
 updateGame sec = do
     gs <- get
-
+    
+    gDeltaSec .= sec -- it's okay to always set this into state
+                     -- might need this for other screen states
+                     -- value should be 1/FPS normally
+    
     paused <- use gPaused
-
+    
     case paused of
         True -> 
             return gs
         False -> do
-            gDeltaSec .= sec
-                
-            posX <- moveX
-            next <- moveY posX
-            gPlayerState  . pPosition .= next
-                
-            spdX <- updateSpeedX
-            spdY <- updateSpeedY
-            gPlayerState  . pSpeed .= (spdX, spdY)
+            movePlayer
 
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
 
             updatedLevel  <- removeItem
             gCurrentLevel .= updatedLevel
-
+            
             door <- openDoor    
             gDoorOpen .= door
 
             nextState <- get
             return nextState
+        
+    
 
 -- Helper Functions:
 renderTile :: (MonadRWS Environment [String] GameState m) =>
@@ -81,7 +80,7 @@ renderTile cellType = do
         'k' -> fst keyImg
         't' -> fst doorTup
         'b' -> snd doorTup
-        _   -> circle 0
+        _   -> circle 0 -- should never reach here
 
 drawTile :: (MonadRWS Environment [String] GameState m) =>
     Cell -> m Picture

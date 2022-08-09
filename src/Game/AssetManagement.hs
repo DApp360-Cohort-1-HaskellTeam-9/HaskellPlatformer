@@ -6,6 +6,7 @@ import Control.Lens
 import Control.Monad.RWS
 
 import Game.Data.Asset
+import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
 import Data.Maybe
@@ -87,12 +88,17 @@ getPlayerSprite :: (MonadRWS Environment [String] GameState m) =>
 getPlayerSprite = do
     env <- ask
     let playerSprites = view (eSprites . aPlayer) env
-    playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
-    let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 
+    -- playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
+    -- let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 
     
-    let for 0 (p:ps) = p
-        for i (p:ps) = for (i - 1) ps
-    return $ for playerSpriteI playerSprites
+    -- let for 0 (p:ps) = p
+    --     for i (p:ps) = for (i - 1) ps
+    -- return $ for playerSpriteI playerSprites
+    face <- use (gPlayerState . pHeading)
+    return $ case face of
+        FaceRight -> last playerSprites
+        FaceLeft  -> head playerSprites
+    
 
 getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
     m (Picture, Picture)
@@ -110,3 +116,14 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
+getCollidables :: [CellType] -- this is a list of collidables cell types
+getCollidables = "*^" -- open to suggestions to improve this function :)
+
+getCoinCellType :: [CellType]
+getCoinCellType = "c"
+
+getKeyCellType :: [CellType]
+getKeyCellType = "k"
+
+getDoorCellType :: [CellType]
+getDoorCellType = "tb"
