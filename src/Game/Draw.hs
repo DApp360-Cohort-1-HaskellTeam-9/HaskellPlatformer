@@ -16,20 +16,16 @@ import Graphics.Gloss
 
 renderGame :: RWST Environment [String] GameState IO Picture
 renderGame = do
-    env <- ask
-    
-    level <- use gCurrentLevel
-    tiles <- mapM drawTile level
-    
-    playerPos <- use (gPlayerState . pPosition)
-
+    env          <- ask
+    level        <- use gCurrentLevel
+    tiles        <- mapM drawTile level
+    playerPos    <- use (gPlayerState . pPosition)
     playerSprite <- getPlayerSprite
-    
-    return . pictures $
-        head (view (eSprites . aBgImg) env) :
-        uncurry translate playerPos playerSprite :   --(color red $ rectangleSolid 32 32) :
-        tiles
-    
+    continue     <- renderContinue
+    return . pictures $ 
+     head (view (eSprites . aBgImg) env) : 
+     uncurry translate playerPos playerSprite : 
+     tiles ++ [continue]
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
 updateGame sec = do
@@ -87,9 +83,22 @@ renderTile cellType = do
         'b' -> snd doorTup
         _   -> circle 0
 
-
 drawTile :: (MonadRWS Environment [String] GameState m) =>
     Cell -> m Picture
 drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
+
+--TEXT : uncurry translate pos $ scale 0.2 0.2 $ text "TESTING 123!"
+
+renderContinue :: (MonadRWS Environment [String] GameState m) =>
+    m Picture
+renderContinue = do
+    env      <- ask
+    paused   <- use gPaused
+    let continue = view (eSprites . aTxtCont) env
+    case paused of
+        True ->
+            return $ continue
+        False -> 
+            return . pictures $ []

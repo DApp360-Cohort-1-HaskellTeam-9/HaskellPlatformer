@@ -17,20 +17,23 @@ import Graphics.Gloss
 initAssets :: IO Assets
 initAssets = do
     keyImg      <- loadBMP "./assets/graphics/items/key.bmp"
+    txtCont     <- loadBMP "./assets/graphics/text/continue.bmp" 
     coinImgs    <- loadCoin
     doorImgs    <- loadDoor
     bgImgs      <- loadBackgrounds
     playerImgs  <- loadPlayers
     baseImgs    <- loadBaseTiles
 
+
     return Sprites
-        { _aPlayer = playerImgs
-        , _aKey    = (keyImg, 'k')
-        , _aDoor   = doorImgs
-        , _aBase   = last $ baseImgs -- TODO: Is there a better function?
-        , _aGrass  = head $ baseImgs -- TODO: Is there a better function?
-        , _aCoin   = coinImgs
-        , _aBgImg  = bgImgs
+        { _aPlayer  = playerImgs
+        , _aKey     = (keyImg, 'k')
+        , _aDoor    = doorImgs
+        , _aBase    = last $ baseImgs -- TODO: Is there a better function?
+        , _aGrass   = head $ baseImgs -- TODO: Is there a better function?
+        , _aCoin    = coinImgs
+        , _aBgImg   = bgImgs
+        , _aTxtCont = txtCont
         }
 
 rootDir :: String
