@@ -4,6 +4,7 @@ module Game.Logic where
 
 import Control.Lens
 import Control.Monad.RWS
+import Control.Monad.Extra
 
 import Game.Data.Environment
 import Game.Data.State
@@ -33,6 +34,7 @@ updateSpeedY = do
     env <- ask
     let tileSize = view eTileSize env
     let itemTiles = view eItemTiles env
+    let baseTiles = view eBaseTiles env
 
     delta <- use gDeltaSec
     
@@ -40,11 +42,13 @@ updateSpeedY = do
     (spdX, spdY) <- use (gPlayerState . pSpeed    )
     (dirX, dirY) <- use (gPlayerState . pDirection)
 
-    collideWithGround <- isCollision (posX, posY + spdY) '*'
-    collideWithGrass  <- isCollision (posX, posY + spdY) '^'
-    return $ if collideWithGround || collideWithGrass
+    collidedTile <- mapM (\x -> isCollision (posX, posY + spdY) x) baseTiles
+    let hasCollided = any (==True) collidedTile
+
+    return $ if hasCollided
         then negate . abs $ spdY -- only negate upwards movement
         else max (-15) $ spdY - 0.5 -- TODO: Don't use constants!
+
 
 
 updateSpeedX :: (MonadRWS Environment [String] GameState m) =>
@@ -96,16 +100,13 @@ openDoor = do
     totalKeys       <- use gTotalKeys
     currentLevel    <- use gCurrentLevel
 
-    if collectedKeys >= totalKeys 
-    then return True
-    else return False
+    paused <- use gPaused
 
-    {-
-    then put $ gs & gDoorOpen .~ True -- .~ is setter
-    else put $ gs & gDoorOpen .~ False
-    nextState <- get
-    return nextState
-    -}
+    return $
+        case compare collectedKeys totalKeys of
+            GT -> False
+            LT -> False
+            EQ -> True
 
 incKeys :: (MonadRWS Environment [String] GameState m) => 
     m Int
@@ -115,6 +116,7 @@ incKeys = do
     collectedKeys   <- use (gPlayerState . pCollectedKeys)
     let keyCell = view (eSprites . aKey) env
     keyFound <- isCollision playerPos (snd keyCell) 
+
     return $
         case keyFound of
             True  -> collectedKeys + 1

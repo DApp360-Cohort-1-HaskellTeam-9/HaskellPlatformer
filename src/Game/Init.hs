@@ -32,6 +32,7 @@ initState args = do
         , _gDoorOpen      = False
         , _gDeltaSec      = 0
         , _gTimeRemaining = 120
+        , _gPaused        = False
         }
     
 

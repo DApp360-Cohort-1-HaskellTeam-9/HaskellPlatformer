@@ -39,7 +39,7 @@ rootDir = "./assets/graphics/"
 loadPlayers :: IO [Picture]
 loadPlayers = do
     let dir = rootDir ++ "characters/"
-    let imgNames = ["playerLeft1","playerLeft2","playerLeft3","playerLeft4","playerRight1","playerRight2","playerRight3","playerRight4"]
+    let imgNames = map (\x -> "player" ++ x ++ "_35x45") ["Left1","Left2","Left3","Left4","Right1","Right2","Right3","Right4"]
     playerImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames -- Could also sequence to flip type
     return playerImgs
 
@@ -96,18 +96,14 @@ getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
 getDoorSprite = do
     env <- ask
     isDoorOpen <- use gDoorOpen
-
     let doorImgs = (view (eSprites . aDoor) env)
-
     let (doorTopImg,doorBottomImg) = 
             case isDoorOpen of
-                True  -> case (doorImgs ^? element 1, doorImgs ^? element 0) of
-                            (Nothing, _)      -> (Nothing, Nothing)
-                            (_, Nothing)      -> (Nothing, Nothing)
-                            (Just x, Just y)  -> (Just x, Just y)
-                False -> case (doorImgs ^? element 3, doorImgs ^? element 2) of
-                            (Nothing, _)      -> (Nothing, Nothing)
-                            (_, Nothing)      -> (Nothing, Nothing)
-                            (Just x, Just y)  -> (Just x, Just y) 
+                True  -> case   (doorImgs ^? element 1, doorImgs ^? element 0) of
+                                (Just x, Just y)  -> (Just x, Just y)
+                                (_,_)             -> (Nothing, Nothing)       
+                False -> case   (doorImgs ^? element 3, doorImgs ^? element 2) of
+                                (Just x, Just y)  -> (Just x, Just y)     
+                                (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 

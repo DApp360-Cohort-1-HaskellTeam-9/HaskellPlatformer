@@ -22,38 +22,46 @@ renderGame = do
     tiles <- mapM drawTile level
     
     playerPos <- use (gPlayerState . pPosition)
+
+    playerSprite <- getPlayerSprite
     
     return . pictures $
         head (view (eSprites . aBgImg) env) :
-        uncurry translate playerPos (color red $ rectangleSolid 32 32) :
+        uncurry translate playerPos playerSprite :   --(color red $ rectangleSolid 32 32) :
         tiles
     
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
 updateGame sec = do
     gs <- get
-    
-    gDeltaSec .= sec
-    
-    posX <- moveX
-    next <- moveY posX
-    gPlayerState  . pPosition .= next
-    
-    spdX <- updateSpeedX
-    spdY <- updateSpeedY
-    gPlayerState  . pSpeed .= (spdX, spdY)
 
-    keys <- incKeys
-    gPlayerState . pCollectedKeys .= keys
+    paused <- use gPaused
 
-    updatedLevel  <- removeItem
-    gCurrentLevel .= updatedLevel
+    case paused of
+        True -> do
+            return gs
+        False -> do
+            gDeltaSec .= sec
+                
+            posX <- moveX
+            next <- moveY posX
+            gPlayerState  . pPosition .= next
+                
+            spdX <- updateSpeedX
+            spdY <- updateSpeedY
+            gPlayerState  . pSpeed .= (spdX, spdY)
 
-    door <- openDoor    
-    gDoorOpen .= door
+            keys <- incKeys
+            gPlayerState . pCollectedKeys .= keys
 
-    nextState <- get
-    return nextState
+            updatedLevel  <- removeItem
+            gCurrentLevel .= updatedLevel
+
+            door <- openDoor    
+            gDoorOpen .= door
+
+            nextState <- get
+            return nextState
 
 -- Helper Functions:
 renderTile :: (MonadRWS Environment [String] GameState m) =>

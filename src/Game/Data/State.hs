@@ -36,5 +36,6 @@ data GameState
     , _gDoorOpen      :: Bool
     , _gTimeRemaining :: Int  -- Time limit
     , _gDeltaSec      :: Float
+    , _gPaused        :: Bool
     }
 makeLenses ''GameState
