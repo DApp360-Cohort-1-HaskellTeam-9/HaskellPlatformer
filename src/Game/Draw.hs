@@ -44,13 +44,19 @@ updateGame sec = do
         False -> do
             movePlayer
 
+            keys <- incKeys
+            gPlayerState . pCollectedKeys .= keys
+
             updatedLevel  <- removeItem
             gCurrentLevel .= updatedLevel
             
+            door <- openDoor    
+            gDoorOpen .= door
+
             nextState <- get
             return nextState
-        
-    
+
+
 
 -- Helper Functions:
 renderTile :: (MonadRWS Environment [String] GameState m) =>

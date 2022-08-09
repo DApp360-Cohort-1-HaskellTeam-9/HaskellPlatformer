@@ -17,7 +17,7 @@ removeItem :: (MonadRWS Environment [String] GameState m) =>
 removeItem = do
     env <- ask
     let tileSize = view eTileSize env
-    let itemTiles = view eItemTiles env
+    let itemTiles = concat [getCoinCellType, getKeyCellType]
     
     currentLv <- use gCurrentLevel
     playerPos <- use (gPlayerState . pPosition)

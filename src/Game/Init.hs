@@ -16,8 +16,6 @@ initEnv args = do
         , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
                            -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
         , _eSprites  = assets
-        , _eItemTiles = ['c', 'k'] --- c is coin and k is key
-        , _eBaseTiles = ['^', '*'] --- ^ is grass, * is base
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
