@@ -17,11 +17,28 @@ movePlayer = do
     env <- ask
     let tileSize = view eTileSize env
     
-    (posX, posY) <- use (gPlayerState . pPosition)
-    (pos', spd') <- calcNextPlayerPosSpd
+    delta <- use gDeltaSec
     
-    let (posX', posY') = pos' -- next position candidate
-    let (spdX', spdY') = spd' -- next speed candidate
+    (posX, posY) <- use (gPlayerState . pPosition) -- initial position
+    (spdX, spdY) <- use (gPlayerState . pSpeed   ) -- initial speed
+    (incX, incY) <- use (gPlayerState . pIncSpeed) -- parameters
+    (maxX, maxY) <- use (gPlayerState . pMaxSpeed) -- parameters
+    
+    -- current player X-axis state
+    movement     <- use (gPlayerState . pMovement)
+    face         <- use (gPlayerState . pHeading )
+    
+    g <- use gForce
+    let spdX' = case movement of
+            MoveStop -> max    0 $ spdX - incX * delta
+            _        -> min maxX $ spdX + incX * delta
+    let spdY' =         max maxY $ spdY - incY * delta * g
+    
+    -- calculate next position
+    let posX' = case face of
+            FaceLeft -> -spdX' * delta + posX
+            FaceRight -> spdX' * delta + posX
+    let posY' =          spdY' * delta + posY
     
     -- check for collisions
     let colliders = getCollidables
@@ -50,36 +67,6 @@ movePlayer = do
     -- update player position and speed
     gPlayerState . pPosition .= (posX'', posY'')
     gPlayerState . pSpeed    .= (spdX'', spdY'')
-
-calcNextPlayerPosSpd :: (MonadRWS Environment [String] GameState m) =>
-    m (XY, XY)
-calcNextPlayerPosSpd = do
-    delta <- use gDeltaSec
-    
-    (posX, posY) <- use (gPlayerState . pPosition) -- initial position
-    (spdX, spdY) <- use (gPlayerState . pSpeed   ) -- initial speed
-    (incX, incY) <- use (gPlayerState . pIncSpeed) -- parameters
-    (maxX, maxY) <- use (gPlayerState . pMaxSpeed) -- parameters
-    
-    -- current player X-axis state
-    movement     <- use (gPlayerState . pMovement)
-    face         <- use (gPlayerState . pHeading )
-    
-    g <- use gForce
-    let spdX' = case movement of
-            MoveStop -> max    0 $ spdX - incX * delta
-            _        -> min maxX $ spdX + incX * delta
-    let spdY' =         max maxY $ spdY - incY * delta * g
-    
-    -- calculate next position
-    let posX' = case face of
-            FaceLeft -> -spdX' * delta + posX
-            FaceRight -> spdX' * delta + posX
-    let posY' =          spdY' * delta + posY
-    
-    let nextPos = (posX', posY')
-    let nextSpd = (spdX', spdY')
-    return (nextPos, nextSpd)
 
 jump :: undefined
 jump = undefined
