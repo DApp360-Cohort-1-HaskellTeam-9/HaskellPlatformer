@@ -6,6 +6,7 @@ import Control.Lens
 import Control.Monad.RWS
 import Control.Lens
 
+import Game.Action
 import Game.AssetManagement
 import Game.Data.Enum
 import Game.Data.Environment
@@ -26,7 +27,7 @@ handleKeys e = do
             case heading of
                 FaceRight -> stopMoveRight
                 FaceLeft  -> stopMoveLeft
-        _                              -> 
+        _                              ->
             case isPaused of
                 True -> return ()
                 False -> case e of 
@@ -54,15 +55,20 @@ pauseGame = do
 
 moveUp :: (MonadRWS Environment [String] GameState m) => m ()
 moveUp = do
-    -- temporary solution for ground checking
+    env <- ask
+    let tileSize = view eTileSize env
+    
     (x, y) <- use (gPlayerState . pPosition)
     let colliders = getCollidables
-    hit <- collideWith colliders (x, y - 1)
+    
+    hit <- collideWith colliders (x, y - tileSize)
     case hit of
         Nothing -> return ()
         Just _  -> do
             (currSpeedX, _) <- use (gPlayerState . pSpeed)
             gPlayerState . pSpeed .= (currSpeedX , 2000)
+        
+    
 
 moveLeft :: (MonadRWS Environment [String] GameState m) => m ()
 moveLeft = do
