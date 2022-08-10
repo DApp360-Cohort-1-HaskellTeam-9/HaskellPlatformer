@@ -11,7 +11,7 @@ import Game.Action
 import Game.AssetManagement
 import Game.Data.Asset
 import Game.Data.Environment
-import Game.Data.Stategit
+import Game.Data.State
 import Game.Logic
 
 import Graphics.Gloss
