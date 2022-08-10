@@ -112,7 +112,7 @@ getPlayerSprite = do
         FaceRight -> rFaces !! i
         FaceLeft  -> lFaces !! i
     
-
+--TODO: re-write to avoid partial function (fromJust)
 getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
     m (Picture, Picture)
 getDoorSprite = do
@@ -128,6 +128,7 @@ getDoorSprite = do
                                 (Just x, Just y)  -> (Just x, Just y)     
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
+
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)

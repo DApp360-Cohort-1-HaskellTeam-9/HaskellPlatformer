@@ -81,7 +81,6 @@ stopMoveLeft = do
         MoveLeft -> gPlayerState . pMovement .= MoveStop
         _        -> return ()
     
-
 stopMoveRight :: (MonadRWS Environment [String] GameState m) => m () 
 stopMoveRight = do
     movement <- use (gPlayerState . pMovement)

@@ -28,7 +28,7 @@ renderGame = do
 
     return . pictures $ 
         background ++ 
-        uncurry translate playerPos playerSprite : 
+        uncurry translate playerPos playerSprite :
         tiles ++ 
         continue
     
@@ -73,7 +73,7 @@ renderTile cellType = do
         grassImg = view (eSprites . aGrass) env
         coinImg  = head $ view (eSprites . aCoin ) env
         keyImg   = view (eSprites . aKey  ) env
-        doorImgs = (view (eSprites . aDoor) env)
+        doorImgs = view (eSprites . aDoor) env
 
     isDoorOpen <- use gDoorOpen
 
