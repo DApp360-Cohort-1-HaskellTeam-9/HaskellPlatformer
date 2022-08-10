@@ -23,13 +23,13 @@ data PlayerState
     , _pHeading       :: PlayerFacing
     , _pSpriteIndex   :: Float -- increment this using sec :: Float
     , _pCollectedKeys :: Int
---  , _pJumpCounter, etc...
     }
 makeLenses ''PlayerState
 
 data GameState
-    = GameState -- new proposed GameState
-    { _gCurrentLevel  :: GameLevel --This could include the gameover/highscore "level"
+    = GameState 
+    { _gCurrentLevel  :: GameLevel -- This is the converted level using cells
+    , _gLevelName     :: String    -- This is just the level name, to be used by functions for checking
     , _gPlayerState   :: PlayerState
     , _gTotalKeys     :: Int
     , _gPaused        :: Bool

@@ -72,7 +72,6 @@ executable HaskellPlatformer
                  ,    gloss
                  ,    lens
                  ,    mtl
-                 ,    extra
 
     -- Directories containing source files.
     hs-source-dirs:   src
