@@ -9,6 +9,8 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Data.Asset
 
+import Sound.ALUT
+
 initEnv :: [String] -> IO Environment
 initEnv args = do
     assets <- initAssets
@@ -20,6 +22,7 @@ initEnv args = do
                            -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
         , _eSprites  = assets
         }
+    
 
 initState :: [String] -> ReaderT Environment IO GameState
 initState args = do
@@ -27,6 +30,13 @@ initState args = do
     let level1 = head $ view (eSprites . aLevels) env
     let levelCells = runReader (prepareData . reverse . lines $ level1) env
 
+    withProgNameAndArgs runALUT $ \_progName _args -> do
+        introBuffer <- createBuffer (File "./assets/sounds/file2.au")
+        introSource <- genObjectName
+        buffer introSource $= Just introBuffer
+        play [introSource]
+        sleep 1
+    
     return GameState
         { _gCurrentLevel  = levelCells
         , _gLevelName     = level1  -- names should correspond to the name of the text values in aLevels
