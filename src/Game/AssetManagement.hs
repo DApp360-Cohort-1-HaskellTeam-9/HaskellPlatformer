@@ -141,3 +141,11 @@ getKeyCellType = "k"
 
 getDoorCellType :: [CellType]
 getDoorCellType = "tb"
+
+type Bounciness = Float
+type BounceStop = Float
+getBounciness :: CellType -> (Bounciness, BounceStop)
+getBounciness c = case c of
+    '^' -> (0.50, 0.05)
+    '*' -> (0.25, 0.05)
+    _   -> (0.00, 0.00)

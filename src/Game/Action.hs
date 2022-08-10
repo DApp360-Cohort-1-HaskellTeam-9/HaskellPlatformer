@@ -17,43 +17,6 @@ movePlayer = do
     env <- ask
     let tileSize = view eTileSize env
     
-    (posX, posY) <- use (gPlayerState . pPosition)
-    (pos', spd') <- calcNextPlayerPosSpd
-    
-    let (posX', posY') = pos' -- next position candidate
-    let (spdX', spdY') = spd' -- next speed candidate
-    
-    -- check for collisions
-    let colliders = getCollidables
-    -- must be calculated independently for each axis
-    hitX <- collideWith colliders (posX', posY)
-    hitY <- collideWith colliders (posX, posY')
-    
-    -- recalculate position and speed
-    face <- use (gPlayerState . pHeading)
-    let dirX = case face of
-            FaceLeft -> -1
-            FaceRight -> 1
-    let dirY = signum spdY'
-    let (posX'', spdX'') = case hitX of -- reset speed on collision
-            Just (x, _) -> (x - tileSize * dirX, 0)
-            Nothing     -> (posX', spdX')
-    bounciness <- use (gPlayerState . pBounciness  )
-    bounceStop <- use (gPlayerState . pBounceCutoff)
-    let bounce  = bounciness * negate spdY'
-    let bounce' = if bounce < bounceStop && bounce > -bounceStop
-                  then 0 else bounce
-    let (posY'', spdY'') = case hitY of -- bounce on collision
-            Just (_, y) -> (y - tileSize * dirY, bounce')
-            Nothing     -> (posY', spdY')
-    
-    -- update player position and speed
-    gPlayerState . pPosition .= (posX'', posY'')
-    gPlayerState . pSpeed    .= (spdX'', spdY'')
-
-calcNextPlayerPosSpd :: (MonadRWS Environment [String] GameState m) =>
-    m (XY, XY)
-calcNextPlayerPosSpd = do
     delta <- use gDeltaSec
     
     (posX, posY) <- use (gPlayerState . pPosition) -- initial position
@@ -77,9 +40,34 @@ calcNextPlayerPosSpd = do
             FaceRight -> spdX' * delta + posX
     let posY' =          spdY' * delta + posY
     
-    let nextPos = (posX', posY')
-    let nextSpd = (spdX', spdY')
-    return (nextPos, nextSpd)
+    -- check for collisions
+    let colliders = getCollidables
+    -- must be calculated independently for each axis
+    hitX <- collideWith colliders (posX', posY)
+    hitY <- collideWith colliders (posX, posY')
+    
+    -- recalculate position and speed
+    face <- use (gPlayerState . pHeading)
+    let dirX = case face of
+            FaceLeft -> -1
+            FaceRight -> 1
+    let dirY = signum spdY'
+    let (posX'', spdX'') = case hitX of -- reset speed on collision
+            Just ((x, y), _) -> (x - tileSize * dirX, 0)
+            Nothing          -> (posX', spdX')
+    let (bounciness, bounceStop) = case hitY of
+            Nothing            -> (0, 0)
+            Just (_, cellType) -> getBounciness cellType
+    let bounce  = bounciness * negate spdY'
+    let bounce' = if abs bounce < bounceStop
+                  then 0 else bounce
+    let (posY'', spdY'') = case hitY of -- bounce on collision
+            Just ((x, y), _) -> (y - tileSize * dirY, bounce')
+            Nothing          -> (posY', spdY')
+    
+    -- update player position and speed
+    gPlayerState . pPosition .= (posX'', posY'')
+    gPlayerState . pSpeed    .= (spdX'', spdY'')
 
 jump :: undefined
 jump = undefined

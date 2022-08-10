@@ -9,6 +9,8 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Data.Asset
 
+import Sound.ALUT
+
 initEnv :: [String] -> IO Environment
 initEnv args = do
     assets <- initAssets
@@ -19,13 +21,22 @@ initEnv args = do
         , _eFPS      = 360 
         , _eSprites  = assets
         }
+    
 
 initState :: [String] -> ReaderT Environment IO GameState
 initState args = do
     env <- ask
     let level1 = head $ view (eSprites . aLevels) env--head $ view (eSprites . aLevels) env
     let levelCells = runReader (prepareData . reverse . lines $ level1) env
-
+    
+    -- TODO: Create a background thread, play bgm instead
+    withProgNameAndArgs runALUT $ \_progName _args -> do
+        introBuffer <- createBuffer . File $ "./assets/sounds/file2.au"
+        introSource <- genObjectName
+        buffer introSource $= Just introBuffer
+        play [introSource]
+        sleep 1
+    
     return GameState
         { _gCurrentLevel  = levelCells
         , _gLevelName     = level1 -- names should correspond to the name of the text values in aLevels
@@ -45,8 +56,6 @@ initPlayer = PlayerState
     , _pSpeed         = (0, 0)
     , _pIncSpeed      = (5000, 1000) -- need playtests
     , _pMaxSpeed      = (500, -1000) -- to tweak these
-    , _pBounciness    = 0.5
-    , _pBounceCutoff  = 0.1
     , _pMovement      = MoveStop
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
@@ -63,7 +72,7 @@ makeRow (c:cs) rowNumber
         let windowWidth  = view eWindowWidth env
         let windowHeight = view eWindowHeight env
         let tileSize     = view eTileSize env
-        let colNumber = length cs    --- ^ Column number is counted from right to left
+        let colNumber = length cs    -- ^ Column number is counted from right to left
         let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
         let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
         return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
