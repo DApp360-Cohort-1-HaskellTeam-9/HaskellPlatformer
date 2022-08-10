@@ -74,8 +74,7 @@ makeRow (c:cs) rowNumber
         let windowWidth  = view eWindowWidth env
         let windowHeight = view eWindowHeight env
         let tileSize     = view eTileSize env
-        let colNumber' = length cs    -- ^ Column number is counted from right to left
-        let colNumber  = if rowNumber == 0 then colNumber' - 5 else colNumber'
+        let colNumber = length cs    -- ^ Column number is counted from right to left
         let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
         let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
         return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
