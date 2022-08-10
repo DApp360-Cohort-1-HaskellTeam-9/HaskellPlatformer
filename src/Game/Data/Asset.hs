@@ -16,6 +16,7 @@ data Assets
     , _aCoin    :: [Picture] -- Spinning coin sprites?
     , _aBgImg   :: [Picture] -- different bg image for each level?
     , _aTxtCont :: Picture
+    , _aLevels  :: [String] 
 --  , we can expand as many as we need later
     }
 makeLenses ''Assets

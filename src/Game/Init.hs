@@ -7,6 +7,7 @@ import Game.AssetManagement
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Game.Data.Asset
 
 initEnv :: [String] -> IO Environment
 initEnv args = do
@@ -21,13 +22,14 @@ initEnv args = do
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
--- may need to take values from Environment?
 initState args = do
     env <- ask
-    level1 <- liftIO . readFile $ "./assets/levels/level1.txt"
-    let level = runReader (prepareData . reverse . lines $ level1) env
+    let level1 = view (eSprites . aLevels) env
+    let levelCells = runReader (prepareData . reverse . lines $ (head level1)) env
+
     return GameState
-        { _gCurrentLevel  = level
+        { _gCurrentLevel  = levelCells
+        , _gLevelName     = head level1  -- names should correspond to the name of the text values in aLevels
         , _gPlayerState   = initPlayer
         , _gTotalKeys     = 3
         , _gDoorOpen      = False

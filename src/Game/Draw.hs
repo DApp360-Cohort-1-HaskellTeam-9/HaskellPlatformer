@@ -1,9 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Game.Draw where
 
 import Control.Lens
 import Control.Monad.RWS
+import Data.Maybe
 
 import Game.Action
 import Game.AssetManagement
@@ -22,10 +24,13 @@ renderGame = do
     playerPos    <- use (gPlayerState . pPosition)
     playerSprite <- getPlayerSprite
     continue     <- renderContinue
+    background   <- renderBackground
+
     return . pictures $ 
-        head (view (eSprites . aBgImg) env) : 
+        background ++ 
         uncurry translate playerPos playerSprite : 
-        tiles ++ [continue]
+        tiles ++ 
+        continue
     
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
@@ -91,11 +96,27 @@ drawTile (pos, celltYpe) = do
 --TEXT : uncurry translate pos $ scale 0.2 0.2 $ text "TESTING 123!"
 
 renderContinue :: (MonadRWS Environment [String] GameState m) =>
-    m Picture
+    m [Picture]
 renderContinue = do
     env      <- ask
     paused   <- use gPaused
     let continue = view (eSprites . aTxtCont) env
     case paused of
-        True  -> return $ continue
-        False -> return $ pictures []
+        True  -> return [continue]
+        False -> return []
+
+renderBackground :: (MonadRWS Environment [String] GameState m) =>
+    m [Picture]
+renderBackground = do
+    env      <- ask
+    level   <- use gLevelName
+
+    let lvlList = view (eSprites . aLevels) env
+    let bgImgs = view (eSprites . aBgImg) env
+    let zipLvls = zip lvlList bgImgs
+    let imgToUse = lookup level zipLvls
+
+    case imgToUse of
+        Nothing -> return []
+        Just x  -> return [x]
+

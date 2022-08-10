@@ -4,7 +4,6 @@ module Game.Logic where
 
 import Control.Lens
 import Control.Monad.RWS
--- import Control.Monad.Extra
 
 import Game.AssetManagement
 import Game.Data.Environment

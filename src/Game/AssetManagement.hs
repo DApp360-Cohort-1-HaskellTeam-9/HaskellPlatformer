@@ -24,7 +24,7 @@ initAssets = do
     bgImgs      <- loadBackgrounds
     playerImgs  <- loadPlayers
     baseImgs    <- loadBaseTiles
-
+    lvlList     <- loadLevels
 
     return Sprites
         { _aPlayer  = playerImgs
@@ -35,6 +35,7 @@ initAssets = do
         , _aCoin    = coinImgs
         , _aBgImg   = bgImgs
         , _aTxtCont = txtCont
+        , _aLevels  = lvlList
         }
 
 rootDir :: String
@@ -72,7 +73,7 @@ loadDoor = do
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = ["skyBackground"]
+    let imgNames = ["skyBackground", "mountainBackground"]
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
