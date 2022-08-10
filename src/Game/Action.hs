@@ -11,8 +11,6 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Logic
 
-import Graphics.Gloss
-
 movePlayer :: (MonadRWS Environment [String] GameState m) =>
     m ()
 movePlayer = do
@@ -40,8 +38,13 @@ movePlayer = do
     let (posX'', spdX'') = case hitX of -- reset speed on collision
             Just (x, _) -> (x - tileSize * dirX, 0)
             Nothing     -> (posX', spdX')
-    let (posY'', spdY'') = case hitY of -- only negate upwards movement
-            Just (_, y) -> (y - tileSize * dirY, negate . abs $ spdY')
+    bounciness <- use (gPlayerState . pBounciness  )
+    bounceStop <- use (gPlayerState . pBounceCutoff)
+    let bounce  = bounciness * negate spdY'
+    let bounce' = if bounce < bounceStop && bounce > -bounceStop
+                  then 0 else bounce
+    let (posY'', spdY'') = case hitY of -- bounce on collision
+            Just (_, y) -> (y - tileSize * dirY, bounce')
             Nothing     -> (posY', spdY')
     
     -- update player position and speed
@@ -49,7 +52,7 @@ movePlayer = do
     gPlayerState . pSpeed    .= (spdX'', spdY'')
 
 calcNextPlayerPosSpd :: (MonadRWS Environment [String] GameState m) =>
-    m (Point, Point)
+    m (XY, XY)
 calcNextPlayerPosSpd = do
     delta <- use gDeltaSec
     
