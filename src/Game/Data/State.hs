@@ -19,6 +19,8 @@ data PlayerState
     , _pSpeed         :: XY
     , _pIncSpeed      :: XY
     , _pMaxSpeed      :: XY
+    , _pBounciness    :: Float
+    , _pBounceCutoff  :: Float
     , _pMovement      :: PlayerMovement
     , _pHeading       :: PlayerFacing
     , _pSpriteIndex   :: Float -- increment this using sec :: Float

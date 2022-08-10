@@ -24,12 +24,12 @@ initEnv args = do
 initState :: [String] -> ReaderT Environment IO GameState
 initState args = do
     env <- ask
-    let level1 = view (eSprites . aLevels) env
-    let levelCells = runReader (prepareData . reverse . lines $ (head level1)) env
+    let level1 = head $ view (eSprites . aLevels) env
+    let levelCells = runReader (prepareData . reverse . lines $ level1) env
 
     return GameState
         { _gCurrentLevel  = levelCells
-        , _gLevelName     = head level1  -- names should correspond to the name of the text values in aLevels
+        , _gLevelName     = level1  -- names should correspond to the name of the text values in aLevels
         , _gPlayerState   = initPlayer
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
@@ -46,6 +46,8 @@ initPlayer = PlayerState
     , _pSpeed         = (0, 0)
     , _pIncSpeed      = (5000, 1000) -- need playtests
     , _pMaxSpeed      = (500, -1000) -- to tweak these
+    , _pBounciness    = 0.5
+    , _pBounceCutoff  = 0.1
     , _pMovement      = MoveStop
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
@@ -55,22 +57,25 @@ initPlayer = PlayerState
 -- | Parse a row in a text level representation 
 makeRow :: String -> Int -> Reader Environment GameLevel
 makeRow [] _ = return []
-makeRow (c:cs) rowNumber 
+makeRow (c:cs) rowNumber
     | c == '.'  = makeRow cs rowNumber  -- ^ Skip empty cell
     | otherwise = do
         env <- ask
         let windowWidth  = view eWindowWidth env
         let windowHeight = view eWindowHeight env
         let tileSize     = view eTileSize env
-        let colNumber = length cs    -- ^ Column number is counted from right to left
+        let colNumber' = length cs    -- ^ Column number is counted from right to left
+        let colNumber  = if rowNumber == 0 then colNumber' - 5 else colNumber'
         let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
         let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
         return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
+    
 
 -- | Create a GameLevel from a text file level representation
 prepareData :: [String] -> Reader Environment GameLevel
 prepareData [] = return []
 prepareData (s:ss) = do
     env <- ask 
-    return $ concat [(runReader (makeRow s rowNumber) env) , (runReader (prepareData ss) env)]
+    return $ concat [runReader (makeRow s rowNumber) env, runReader (prepareData ss) env]
         where rowNumber = length ss    -- ^ Row number is counted from bottom
+    
