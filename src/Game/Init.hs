@@ -2,7 +2,6 @@ module Game.Init where
 
 import Control.Lens
 import Control.Monad.Reader
-import Control.Monad.RWS
 
 import Game.AssetManagement
 import Game.Data.Enum
@@ -15,7 +14,10 @@ initEnv args = do
     assets <- initAssets
     return Environment
         { _eTileSize = 32
-        , _eFPS      = 360
+        , _eWindowWidth = 1024
+        , _eWindowHeight = 768
+        , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
+                           -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
         , _eSprites  = assets
         }
 
@@ -50,22 +52,25 @@ initPlayer = PlayerState
     , _pCollectedKeys = 0
     }
 
-prepareData :: [String] -> Reader Environment GameLevel
-prepareData rawData = do
-    env <- ask
-    return . concat $
-        [runReader (makeRow (rawData !! y) y) env | y <- [0 .. length rawData - 1]]
-    
-
+-- | Parse a row in a text level representation 
 makeRow :: String -> Int -> Reader Environment GameLevel
-makeRow row y = do
-    env <- ask
-    let tileSize = view eTileSize env
-    return
-        [ (((fromIntegral x * tileSize) - ((1024 / 2) - (tileSize / 2))
-        , (fromIntegral y * tileSize) - ((768 / 2) - (tileSize / 2)))
-        , row !! x) -- TODO: get rid of partial functions and list comprehensions
-        | x <- [0 .. length row - 1]
-        , row !! x /= '.'
-        ]
-    
+makeRow [] _ = return []
+makeRow (c:cs) rowNumber 
+    | c == '.'  = makeRow cs rowNumber  -- ^ Skip empty cell
+    | otherwise = do
+        env <- ask
+        let windowWidth  = view eWindowWidth env
+        let windowHeight = view eWindowHeight env
+        let tileSize     = view eTileSize env
+        let colNumber = length cs    -- ^ Column number is counted from right to left
+        let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
+        let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
+        return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
+
+-- | Create a GameLevel from a text file level representation
+prepareData :: [String] -> Reader Environment GameLevel
+prepareData [] = return []
+prepareData (s:ss) = do
+    env <- ask 
+    return $ concat [(runReader (makeRow s rowNumber) env) , (runReader (prepareData ss) env)]
+        where rowNumber = length ss    -- ^ Row number is counted from bottom
