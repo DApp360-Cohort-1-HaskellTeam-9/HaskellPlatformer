@@ -17,8 +17,9 @@ main = do
     
     -- init Environment
     env <- initEnv args
-    
-    let window  = InWindow "Haskell Platformer" (1024, 768) (0, 0) -- env ?
+    let windowWidth = view eWindowWidth env
+    let windowHeight = view eWindowHeight env
+    let window  = InWindow "Haskell Platformer" (windowWidth, windowHeight) (0, 0) -- env ?
     let bgColor = black
     let fps     = view eFPS env
     
