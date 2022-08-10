@@ -48,16 +48,17 @@ updateGame sec = do
             return gs
         False -> do
             movePlayer
-
+            incPlayerSprite
+            
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
-
+            
             updatedLevel  <- removeItem
             gCurrentLevel .= updatedLevel
             
             door <- openDoor    
             gDoorOpen .= door
-
+            
             nextState <- get
             return nextState
 

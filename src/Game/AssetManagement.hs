@@ -84,21 +84,33 @@ loadLevels = do
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
     return levels
 
+incPlayerSprite :: (MonadRWS Environment [String] GameState m) =>
+    m ()
+incPlayerSprite = do
+    movement <- use (gPlayerState . pMovement)
+    case movement of
+        MoveStop -> return ()
+        _        -> do
+            delta <- use gDeltaSec
+            gPlayerState . pSpriteIndex %= (+delta*10)
+        
+    
+
 getPlayerSprite :: (MonadRWS Environment [String] GameState m) => 
     m Picture
 getPlayerSprite = do
     env <- ask
-    let playerSprites = view (eSprites . aPlayer) env
-    -- playerSpriteIndex <- use $ gPlayerState . pSpriteIndex
-    -- let playerSpriteI = truncate playerSpriteIndex `mod` length playerSprites 
     
-    -- let for 0 (p:ps) = p
-    --     for i (p:ps) = for (i - 1) ps
-    -- return $ for playerSpriteI playerSprites
+    let playerSprites    = view (eSprites . aPlayer) env
+    let (lFaces, rFaces) = splitAt 4 playerSprites
+    
+    spriteIndex <- use (gPlayerState . pSpriteIndex)
+    let i = truncate spriteIndex `mod` 4
+    
     face <- use (gPlayerState . pHeading)
     return $ case face of
-        FaceRight -> last playerSprites
-        FaceLeft  -> head playerSprites
+        FaceRight -> rFaces !! i
+        FaceLeft  -> lFaces !! i
     
 
 getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
