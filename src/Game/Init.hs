@@ -16,8 +16,7 @@ initEnv args = do
         { _eTileSize = 32
         , _eWindowWidth = 1024
         , _eWindowHeight = 768
-        , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
-                           -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
+        , _eFPS      = 360 
         , _eSprites  = assets
         }
 
@@ -56,13 +55,13 @@ initPlayer = PlayerState
 makeRow :: String -> Int -> Reader Environment GameLevel
 makeRow [] _ = return []
 makeRow (c:cs) rowNumber 
-    | c == '.'  = makeRow cs rowNumber  -- ^ Skip empty cell
+    | c == '.'  = makeRow cs rowNumber  --- ^ Skip empty cell
     | otherwise = do
         env <- ask
         let windowWidth  = view eWindowWidth env
         let windowHeight = view eWindowHeight env
         let tileSize     = view eTileSize env
-        let colNumber = length cs    -- ^ Column number is counted from right to left
+        let colNumber = length cs    --- ^ Column number is counted from right to left
         let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
         let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
         return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
@@ -73,4 +72,4 @@ prepareData [] = return []
 prepareData (s:ss) = do
     env <- ask 
     return $ concat [(runReader (makeRow s rowNumber) env) , (runReader (prepareData ss) env)]
-        where rowNumber = length ss    -- ^ Row number is counted from bottom
+        where rowNumber = length ss    --- ^ Row number is counted from bottom

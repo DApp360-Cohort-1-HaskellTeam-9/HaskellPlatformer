@@ -65,7 +65,6 @@ openDoor = do
             LT -> False
             EQ -> True
         
-    
 
 incKeys :: (MonadRWS Environment [String] GameState m) => 
     m Int
