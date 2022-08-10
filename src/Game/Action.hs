@@ -53,16 +53,17 @@ movePlayer = do
             FaceRight -> 1
     let dirY = signum spdY'
     let (posX'', spdX'') = case hitX of -- reset speed on collision
-            Just (x, _) -> (x - tileSize * dirX, 0)
-            Nothing     -> (posX', spdX')
-    bounciness <- use (gPlayerState . pBounciness  )
-    bounceStop <- use (gPlayerState . pBounceCutoff)
+            Just ((x, y), _) -> (x - tileSize * dirX, 0)
+            Nothing          -> (posX', spdX')
+    let (bounciness, bounceStop) = case hitY of
+            Nothing            -> (0, 0)
+            Just (_, cellType) -> getBounciness cellType
     let bounce  = bounciness * negate spdY'
-    let bounce' = if bounce < bounceStop && bounce > -bounceStop
+    let bounce' = if abs bounce < bounceStop
                   then 0 else bounce
     let (posY'', spdY'') = case hitY of -- bounce on collision
-            Just (_, y) -> (y - tileSize * dirY, bounce')
-            Nothing     -> (posY', spdY')
+            Just ((x, y), _) -> (y - tileSize * dirY, bounce')
+            Nothing          -> (posY', spdY')
     
     -- update player position and speed
     gPlayerState . pPosition .= (posX'', posY'')

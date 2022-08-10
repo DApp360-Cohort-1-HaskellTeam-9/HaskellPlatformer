@@ -28,7 +28,7 @@ removeItem = do
     
 
 collideWith :: (MonadRWS Environment [String] GameState m) =>
-    [CellType] -> Point -> m (Maybe Point)
+    [CellType] -> Point -> m (Maybe Cell)
 collideWith colliders point = do
     env <- ask
     let tileSize = view eTileSize env
@@ -36,7 +36,7 @@ collideWith colliders point = do
     level <- use gCurrentLevel
     return $ foldr (\ (cell, cellType) next ->
         if cellType `elem` colliders && isHit point cell tileSize
-            then Just cell
+            then Just (cell, cellType)
             else next)
         Nothing
         level
