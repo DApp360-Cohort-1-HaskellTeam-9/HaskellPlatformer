@@ -19,7 +19,7 @@ removeItem = do
     let tileSize = view eTileSize env
     let itemTiles = concat [getCoinCellType, getKeyCellType]
     
-    currentLv <- use gCurrentLevel
+    currentLv <- use (gLevelState . lLevelCells)
     playerPos <- use (gPlayerState . pPosition)
     
     return $ filter
@@ -33,7 +33,7 @@ collideWith colliders point = do
     env <- ask
     let tileSize = view eTileSize env
 
-    level <- use gCurrentLevel
+    level <- use (gLevelState . lLevelCells)
     return $ foldr (\ (cell, cellType) next ->
         if cellType `elem` colliders && isHit point cell tileSize
             then Just (cell, cellType)
@@ -54,14 +54,14 @@ openDoor = do
     gs <- get
     collectedKeys   <- use (gPlayerState . pCollectedKeys)
     totalKeys       <- use gTotalKeys
-    currentLevel    <- use gCurrentLevel
+    currentLevel    <- use (gLevelState . lLevelCells)
 
     paused <- use gPaused
     
     if collectedKeys == totalKeys
         then do
             isDoorOpen <- use gDoorOpen
-            unless isDoorOpen $ playSound DoorOpen
+            --unless isDoorOpen $ playSound DoorOpen
             return True
         else do
             return False
@@ -84,7 +84,6 @@ openDoor = do
 --             playSound Coin
 --             return 1
         
-    
 
 incKeys :: (PureRWS m) => m Int
 incKeys = do

@@ -72,7 +72,9 @@ executable HaskellPlatformer
                  ,    gloss
                  ,    lens
                  ,    mtl
-                 ,    ALUT
+                -- ,    ALUT
+
+
 
     -- Directories containing source files.
     hs-source-dirs:   src

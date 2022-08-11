@@ -15,34 +15,39 @@ import Data.Maybe
 
 import Graphics.Gloss
 
-import Sound.ALUT as Sound
+--import Sound.ALUT as Sound
 
 --loadImgs :: RWST Environment [String] GameState IO [Picture]
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg      <- loadBMP "./assets/graphics/items/key.bmp"
-    txtCont     <- loadBMP "./assets/graphics/text/continue.bmp" 
-    coinImgs    <- loadCoin
-    doorImgs    <- loadDoor
-    bgImgs      <- loadBackgrounds
-    playerImgs  <- loadPlayers
-    baseImgs    <- loadBaseTiles
-    lvlList     <- loadLevels
-    
+    keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
+    txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
+    txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
+    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp" 
+    coinImgs     <- loadCoin
+    doorImgs     <- loadDoor
+    bgImgs       <- loadBackgrounds
+    playerImgs   <- loadPlayers
+    baseImgs     <- loadBaseTiles
+    lvlData      <- loadLevels
+
     return Assets
-        { _aPlayer  = playerImgs
-        , _aKey     = (keyImg, 'k')
-        , _aDoor    = doorImgs
-        , _aBase    = last $ baseImgs -- TODO: Is there a better function?
-        , _aGrass   = head $ baseImgs -- TODO: Is there a better function?
-        , _aCoin    = coinImgs
-        , _aBgImg   = bgImgs
-        , _aTxtCont = txtCont
-        , _aLevels  = lvlList
+        { _aPlayer     = playerImgs
+        , _aKey        = (keyImg, 'k')
+        , _aDoor       = doorImgs
+        , _aBase       = last $ baseImgs -- TODO: Is there a better function?
+        , _aGrass      = head $ baseImgs -- TODO: Is there a better function?
+        , _aCoin       = coinImgs
+        , _aBgImg      = bgImgs
+        , _aTxtPause   = txtPause
+        , _aTxtEnter   = txtEnter
+        , _aTxtTitle   = txtTitle
+        , _aLvlNames   = fst lvlData
+        , _aLvlFiles   = snd lvlData
         }
     
-
+{-
 initSound :: IO SoundInfo
 initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
     (Just device)  <- openDevice Nothing
@@ -72,6 +77,7 @@ initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
     
     -- Construct our stateful SoundInfo.
     return $ SoundInfo device context sounds
+-}
 
 rootDir :: String
 rootDir = "./assets/graphics/"
@@ -108,16 +114,16 @@ loadDoor = do
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = ["skyBackground", "mountainBackground"]
+    let imgNames = ["LevelStart","Level1", "Level2","Level3","LevelCredits"] --Placeholder for 4 backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
-loadLevels :: IO [String]
+loadLevels :: IO ([String],[String])
 loadLevels = do
     let dir = "assets/levels/"
-    let lvlNames = ["level1", "level2", "level3"]
+    let lvlNames = ["LevelStart","Level1", "Level2","Level3","LevelCredits"]
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
-    return levels
+    return $ (lvlNames, levels)
 
 incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
@@ -161,6 +167,7 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
+{-
 playSound :: SoundType -> RWSIO ()
 playSound s = do
     env <- ask
@@ -169,7 +176,7 @@ playSound s = do
     withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
         currentContext $= Just soundContext
         Sound.play . maybeToList $ lookup s soundSources
-    
+-}
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)
