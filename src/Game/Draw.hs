@@ -5,7 +5,6 @@ module Game.Draw where
 
 import Control.Lens
 import Control.Monad.RWS
-import Data.Maybe
 
 import Game.Action
 import Game.AssetManagement

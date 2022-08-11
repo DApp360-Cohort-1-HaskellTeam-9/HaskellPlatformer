@@ -6,7 +6,6 @@ import Control.Lens
 import Control.Monad.RWS
 import Control.Lens
 
-import Game.Action
 import Game.AssetManagement
 import Game.Data.Enum
 import Game.Data.Environment
