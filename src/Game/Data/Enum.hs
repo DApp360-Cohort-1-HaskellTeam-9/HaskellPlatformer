@@ -21,6 +21,7 @@ data PlayerFacing
     = FaceLeft
     | FaceRight
 
+-- Determines current level
 data LevelName
     = LevelStart
     | Level1

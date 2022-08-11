@@ -15,7 +15,7 @@ import Data.Maybe
 
 import Graphics.Gloss
 
-import Sound.ALUT as Sound
+--import Sound.ALUT as Sound
 
 --loadImgs :: RWST Environment [String] GameState IO [Picture]
 
@@ -32,7 +32,7 @@ initAssets = do
     baseImgs     <- loadBaseTiles
     lvlData      <- loadLevels
 
-    return Sprites
+    return Assets
         { _aPlayer     = playerImgs
         , _aKey        = (keyImg, 'k')
         , _aDoor       = doorImgs
@@ -47,7 +47,7 @@ initAssets = do
         , _aLvlFiles   = snd lvlData
         }
     
-
+{-
 initSound :: IO SoundInfo
 initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
     (Just device)  <- openDevice Nothing
@@ -77,6 +77,7 @@ initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
     
     -- Construct our stateful SoundInfo.
     return $ SoundInfo device context sounds
+-}
 
 rootDir :: String
 rootDir = "./assets/graphics/"
@@ -166,6 +167,7 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
+{-
 playSound :: SoundType -> RWSIO ()
 playSound s = do
     env <- ask
@@ -174,7 +176,7 @@ playSound s = do
     withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
         currentContext $= Just soundContext
         Sound.play . maybeToList $ lookup s soundSources
-    
+-}
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)

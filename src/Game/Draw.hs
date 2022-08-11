@@ -49,7 +49,7 @@ updateGame sec = do
         False -> do
             movePlayer
             incPlayerSprite
-            playSFX
+            --playSFX
             
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
@@ -129,7 +129,7 @@ renderBackground = do
     
 
 
-
+{-
 playSFX :: RWSIO ()
 playSFX = do
     player <- use (gPlayerState . pPosition)
@@ -152,4 +152,4 @@ playSFX = do
     when isDoorOpen $ case hitDoor of
         Just cn -> playSound DoorClose
         Nothing -> return ()
-    
+-}
