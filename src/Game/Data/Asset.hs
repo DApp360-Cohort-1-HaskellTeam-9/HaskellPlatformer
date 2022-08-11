@@ -6,6 +6,8 @@ import Control.Lens
 import Graphics.Gloss
 import Game.Data.State
 
+import Sound.ALUT as Sound
+
 data Assets
     = Sprites -- Use Assets instead of Sprites?
     { _aPlayer   :: [Picture]
@@ -23,3 +25,18 @@ data Assets
 --  , we can expand as many as we need later
     }
 makeLenses ''Assets
+
+-- must be declared in this particular order due to Lens
+data SoundType
+    = Coin
+    | Key
+    | DoorOpen
+    | DoorClose
+    deriving (Bounded, Enum, Eq)
+data SoundInfo
+    = SoundInfo
+    { _sDevice  :: Sound.Device
+    , _sContext :: Sound.Context
+    , _sSources :: [(SoundType, Sound.Source)]
+    }
+makeLenses ''SoundInfo

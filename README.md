@@ -1,4 +1,3 @@
 # HaskellPlatformer
-This is a Haskell animation project using FreeGLUT.
-For more information about FreeGLUT, visit:
-http://freeglut.sourceforge.net
+This is a Haskell platformer game project using [FreeGLUT](http://freeglut.sourceforge.net) and [ALUT](https://hackage.haskell.org/package/ALUT).
+Assets are provided by [OpenGameArt.org](https://opengameart.org)

@@ -5,13 +5,17 @@ module Game.AssetManagement where
 import Control.Lens
 import Control.Monad.RWS
 
+import Game.Data.Alias
 import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+
 import Data.Maybe
 
 import Graphics.Gloss
+
+import Sound.ALUT as Sound
 
 --loadImgs :: RWST Environment [String] GameState IO [Picture]
 
@@ -42,6 +46,37 @@ initAssets = do
         , _aLvlNames   = fst lvlData
         , _aLvlFiles   = snd lvlData
         }
+    
+
+initSound :: IO SoundInfo
+initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+    (Just device)  <- openDevice Nothing
+    (Just context) <- createContext device []
+    currentContext $= Just context
+    
+    let -- Credits to: dixonary / hake
+        -- Load our sound file enum into an array.
+        soundFiles :: [SoundType]
+        soundFiles = [minBound..maxBound]
+        
+        soundPath :: SoundType -> String
+        soundPath Coin      = "./assets/sounds/wizzle.wav"
+        soundPath Key       = "./assets/sounds/pellet.wav"
+        soundPath DoorOpen  = "./assets/sounds/file2.au"
+        soundPath DoorClose = "./assets/sounds/blip.wav"
+        
+        -- Generate buffer queue for each sound.
+        loadBuffer sf = do
+            buf <- createBuffer $ File $ soundPath sf
+            [src] <- genObjectNames 1
+            queueBuffers src [buf]
+            return (sf, src)
+    
+    -- Run loadBuffer for each soundFile.
+    sounds <- mapM loadBuffer soundFiles
+    
+    -- Construct our stateful SoundInfo.
+    return $ SoundInfo device context sounds
 
 rootDir :: String
 rootDir = "./assets/graphics/"
@@ -89,8 +124,7 @@ loadLevels = do
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
     return $ (lvlNames, levels)
 
-incPlayerSprite :: (MonadRWS Environment [String] GameState m) =>
-    m ()
+incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
     movement <- use (gPlayerState . pMovement)
     case movement of
@@ -100,8 +134,8 @@ incPlayerSprite = do
             gPlayerState . pSpriteIndex %= (+delta*10)
         
     
-getPlayerSprite :: (MonadRWS Environment [String] GameState m) => 
-    m Picture
+
+getPlayerSprite :: (PureRWS m) => m Picture
 getPlayerSprite = do
     env <- ask
     
@@ -116,9 +150,8 @@ getPlayerSprite = do
         FaceRight -> rFaces !! i
         FaceLeft  -> lFaces !! i
     
---TODO: re-write to avoid partial function (fromJust)
-getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
-    m (Picture, Picture)
+
+getDoorSprite :: (PureRWS m) => m (Picture, Picture)
 getDoorSprite = do
     env <- ask
     isDoorOpen <- use gDoorOpen
@@ -133,6 +166,15 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
+playSound :: SoundType -> RWSIO ()
+playSound s = do
+    env <- ask
+    let soundContext = view (eSounds . sContext) env
+    let soundSources = view (eSounds . sSources) env
+    withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+        currentContext $= Just soundContext
+        Sound.play . maybeToList $ lookup s soundSources
+    
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)
