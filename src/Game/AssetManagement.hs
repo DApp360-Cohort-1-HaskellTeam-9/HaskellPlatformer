@@ -24,7 +24,8 @@ initAssets = do
     keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
     txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
     txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
-    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp" 
+    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp"
+    txtDigits    <- loadTxtDigits
     coinImgs     <- loadCoin
     doorImgs     <- loadDoor
     bgImgs       <- loadBackgrounds
@@ -43,6 +44,7 @@ initAssets = do
         , _aTxtPause   = txtPause
         , _aTxtEnter   = txtEnter
         , _aTxtTitle   = txtTitle
+        , _aTxtDigits  = txtDigits
         , _aLvlNames   = fst lvlData
         , _aLvlFiles   = snd lvlData
         }
@@ -109,6 +111,14 @@ loadDoor = do
     let imgNames = ["door_openMid", "door_openTop", "door_closedMid", "door_closedTop"]
     doorImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return doorImgs
+
+loadTxtDigits :: IO [Picture]
+loadTxtDigits = do
+    let dir = rootDir ++ "text/"
+    let imgNames = "0123456789"
+    digitImgs <- mapM (loadBMP . (\n -> dir ++ n : ".bmp")) imgNames
+    return digitImgs
+
 
 --Add more backgrounds later
 loadBackgrounds :: IO [Picture]
