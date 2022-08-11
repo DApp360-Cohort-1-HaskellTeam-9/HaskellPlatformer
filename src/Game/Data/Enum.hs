@@ -2,12 +2,13 @@ module Game.Data.Enum where
 
 -- This is to control render and update functions
 data GameScene
-    = SceneMenu
-    | SceneLevel
+    = SceneLevel
     | SceneTransition
     | SceneWin
     | SceneLose
     | ScenePause
+    | SceneCredits
+    | SceneStart
 
 -- This is for player movement logic
 data PlayerMovement
@@ -19,3 +20,11 @@ data PlayerMovement
 data PlayerFacing
     = FaceLeft
     | FaceRight
+
+data LevelName
+    = LevelStart
+    | Level1
+    | Level2
+    | Level3
+    | LevelCredits
+    deriving Show

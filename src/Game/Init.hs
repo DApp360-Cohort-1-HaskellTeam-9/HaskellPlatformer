@@ -9,7 +9,7 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Data.Asset
 
-import Sound.ALUT
+--import Sound.ALUT
 
 initEnv :: [String] -> IO Environment
 initEnv args = do
@@ -21,14 +21,12 @@ initEnv args = do
         , _eFPS      = 360 
         , _eSprites  = assets
         }
-    
 
 initState :: [String] -> ReaderT Environment IO GameState
 initState args = do
     env <- ask
-    let level1 = head $ view (eSprites . aLevels) env--head $ view (eSprites . aLevels) env
-    let levelCells = runReader (prepareData . reverse . lines $ level1) env
-    
+{-  
+
     -- TODO: Create a background thread, play bgm instead
     withProgNameAndArgs runALUT $ \_progName _args -> do
         introBuffer <- createBuffer . File $ "./assets/sounds/file2.au"
@@ -36,17 +34,17 @@ initState args = do
         buffer introSource $= Just introBuffer
         play [introSource]
         sleep 1
-    
+-}
     return GameState
-        { _gCurrentLevel  = levelCells
-        , _gLevelName     = level1 -- names should correspond to the name of the text values in aLevels
-        , _gPlayerState   = initPlayer
+        { _gPlayerState   = initPlayer
+        , _gLevelState    = runReader (initLevel) env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
         , _gPaused        = False
         , _gTimeRemaining = 120
         , _gDeltaSec      = 0
         , _gForce         = 10 -- gravity constant for this level
+        , _gGameScene     = SceneStart
         }
     
 
@@ -62,6 +60,18 @@ initPlayer = PlayerState
     , _pCollectedKeys = 0
     }
 
+initLevel :: Reader Environment LevelState
+initLevel = do
+    env <- ask
+    let level1 = (view (eSprites . aLvlFiles) env) !! 1
+    let levelCells = runReader (prepareData . reverse . lines $ level1) env
+
+    return 
+        LevelState
+        { _lLevelName    = Level1
+        , _lLevelCells   = levelCells
+        } 
+
 -- | Parse a row in a text level representation 
 makeRow :: String -> Int -> Reader Environment GameLevel
 makeRow [] _ = return []
@@ -72,7 +82,7 @@ makeRow (c:cs) rowNumber
         let windowWidth  = view eWindowWidth env
         let windowHeight = view eWindowHeight env
         let tileSize     = view eTileSize env
-        let colNumber = length cs    -- ^ Column number is counted from right to left
+        let colNumber = length cs    --- ^ Column number is counted from right to left
         let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
         let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
         return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env

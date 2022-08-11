@@ -13,24 +13,26 @@ import Game.Data.Asset
 import Game.Data.Environment
 import Game.Data.State
 import Game.Logic
+import Game.Data.Enum
 
 import Graphics.Gloss
 
 renderGame :: RWST Environment [String] GameState IO Picture
 renderGame = do
     env          <- ask
-    level        <- use gCurrentLevel
+    level        <- use (gLevelState . lLevelCells)
     tiles        <- mapM drawTile level
     playerPos    <- use (gPlayerState . pPosition)
     playerSprite <- getPlayerSprite
-    continue     <- renderContinue
+    text         <- renderText
     background   <- renderBackground
 
+    --Probably need to replace with renderLevel function?
     return . pictures $ 
         background ++ 
         uncurry translate playerPos playerSprite :
         tiles ++ 
-        continue
+        text
     
 
 updateGame :: Float -> RWST Environment [String] GameState IO GameState
@@ -54,7 +56,7 @@ updateGame sec = do
             gPlayerState . pCollectedKeys .= keys
             
             updatedLevel  <- removeItem
-            gCurrentLevel .= updatedLevel
+            gLevelState . lLevelCells .= updatedLevel
             
             door <- openDoor    
             gDoorOpen .= door
@@ -94,30 +96,40 @@ drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
 
---TEXT : uncurry translate pos $ scale 0.2 0.2 $ text "TESTING 123!"
-
-renderContinue :: (MonadRWS Environment [String] GameState m) =>
+renderText :: (MonadRWS Environment [String] GameState m) =>
     m [Picture]
-renderContinue = do
-    env      <- ask
-    paused   <- use gPaused
-    let continue = view (eSprites . aTxtCont) env
+renderText = do
+    env          <- ask
+    paused       <- use gPaused
+    level        <- use (gLevelState . lLevelName)
+    let continue  = view (eSprites . aTxtPause) env
+    let title     = view (eSprites . aTxtTitle) env
+    let enter     = view (eSprites . aTxtEnter) env
+    let startText = [uncurry translate (0,200) title, uncurry translate (0,-200) enter] 
+
     case paused of
-        True  -> return [continue]
-        False -> return []
+        True  -> case level of
+                    LevelStart  -> return startText --Add credits screen?
+                    _           -> return [continue]
+        False -> case level of
+                    LevelStart  -> return startText 
+                    _           -> return []
+
 
 renderBackground :: (MonadRWS Environment [String] GameState m) =>
     m [Picture]
 renderBackground = do
     env      <- ask
-    level   <- use gLevelName
+    level   <- use (gLevelState . lLevelName)
 
-    let lvlList = view (eSprites . aLevels) env
+    let lvlList = view (eSprites . aLvlNames) env
     let bgImgs = view (eSprites . aBgImg) env
     let zipLvls = zip lvlList bgImgs
-    let imgToUse = lookup level zipLvls
+    let imgToUse = lookup (show level) zipLvls
 
     case imgToUse of
         Nothing -> return []
         Just x  -> return [x]
+    
+
 
