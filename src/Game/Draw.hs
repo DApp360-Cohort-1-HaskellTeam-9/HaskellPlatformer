@@ -1,14 +1,13 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE FlexibleContexts, RankNTypes #-}
 
 module Game.Draw where
 
 import Control.Lens
 import Control.Monad.RWS
-import Data.Maybe
 
 import Game.Action
 import Game.AssetManagement
+import Game.Data.Alias
 import Game.Data.Asset
 import Game.Data.Environment
 import Game.Data.State
@@ -16,7 +15,7 @@ import Game.Logic
 
 import Graphics.Gloss
 
-renderGame :: RWST Environment [String] GameState IO Picture
+renderGame :: RWSIO Picture
 renderGame = do
     env          <- ask
     level        <- use gCurrentLevel
@@ -33,13 +32,12 @@ renderGame = do
         continue
     
 
-updateGame :: Float -> RWST Environment [String] GameState IO GameState
+updateGame :: Float -> RWSIO GameState
 updateGame sec = do
     gs <- get
     
-    gDeltaSec .= sec -- it's okay to always set this into state
-                     -- might need this for other screen states
-                     -- value should be 1/FPS normally
+    gDeltaSec .= sec -- might need this for other screen states
+                     -- normally, the value should be 1/FPS
     
     paused <- use gPaused
     
@@ -49,27 +47,7 @@ updateGame sec = do
         False -> do
             movePlayer
             incPlayerSprite
-            
-            player <- use (gPlayerState . pPosition)
-            let coin = getCoinCellType
-            let key  = getKeyCellType
-            let door = getDoorCellType
-
-            hitCoin <- collideWith coin player
-            case hitCoin of
-                Just cn -> playSound Coin
-                Nothing -> return ()
-            
-            hitKey <- collideWith key player
-            case hitKey of
-                Just ky -> playSound Key
-                Nothing -> return ()
-            
-            hitDoor <- collideWith door player
-            isDoorOpen <- use gDoorOpen
-            when isDoorOpen $ case hitDoor of
-                Just cn -> playSound DoorClose
-                Nothing -> return ()
+            playSFX
             
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
@@ -82,12 +60,11 @@ updateGame sec = do
             
             nextState <- get
             return nextState
-
-
+        
+    
 
 -- Helper Functions:
-renderTile :: (MonadRWS Environment [String] GameState m) =>
-    CellType -> m Picture
+renderTile :: (PureRWS m) => CellType -> m Picture
 renderTile cellType = do
     env <- ask
     let baseImg  = view (eSprites . aBase ) env
@@ -109,16 +86,14 @@ renderTile cellType = do
         'b' -> snd doorTup
         _   -> circle 0 -- should never reach here
 
-drawTile :: (MonadRWS Environment [String] GameState m) =>
-    Cell -> m Picture
+drawTile :: (PureRWS m) => Cell -> m Picture
 drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
 
 --TEXT : uncurry translate pos $ scale 0.2 0.2 $ text "TESTING 123!"
 
-renderContinue :: (MonadRWS Environment [String] GameState m) =>
-    m [Picture]
+renderContinue :: (PureRWS m) => m [Picture]
 renderContinue = do
     env      <- ask
     paused   <- use gPaused
@@ -127,8 +102,7 @@ renderContinue = do
         True  -> return [continue]
         False -> return []
 
-renderBackground :: (MonadRWS Environment [String] GameState m) =>
-    m [Picture]
+renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
     env      <- ask
     level   <- use gLevelName
@@ -141,4 +115,28 @@ renderBackground = do
     case imgToUse of
         Nothing -> return []
         Just x  -> return [x]
+    
 
+playSFX :: RWSIO ()
+playSFX = do
+    player <- use (gPlayerState . pPosition)
+    let coin = getCoinCellType
+        key  = getKeyCellType
+        door = getDoorCellType
+    
+    hitCoin <- collideWith coin player
+    case hitCoin of
+        Just cn -> playSound Coin
+        Nothing -> return ()
+    
+    hitKey <- collideWith key player
+    case hitKey of
+        Just ky -> playSound Key
+        Nothing -> return ()
+    
+    hitDoor <- collideWith door player
+    isDoorOpen <- use gDoorOpen
+    when isDoorOpen $ case hitDoor of
+        Just cn -> playSound DoorClose
+        Nothing -> return ()
+    

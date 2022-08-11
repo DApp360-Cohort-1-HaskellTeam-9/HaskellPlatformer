@@ -2,16 +2,14 @@
 
 module Game.AssetManagement where
 
-import Control.Concurrent
--- import Control.Concurrent.STM
 import Control.Lens
 import Control.Monad.RWS
 
+import Game.Data.Alias
 import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
--- import Game.Util
 
 import Data.Maybe
 
@@ -50,18 +48,18 @@ initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
     (Just device)  <- openDevice Nothing
     (Just context) <- createContext device []
     currentContext $= Just context
-
-    let
+    
+    let -- Credits to: dixonary / hake
         -- Load our sound file enum into an array.
         soundFiles :: [SoundType]
         soundFiles = [minBound..maxBound]
-
+        
         soundPath :: SoundType -> String
         soundPath Coin      = "./assets/sounds/wizzle.wav"
         soundPath Key       = "./assets/sounds/pellet.wav"
         soundPath DoorOpen  = "./assets/sounds/file2.au"
         soundPath DoorClose = "./assets/sounds/blip.wav"
-
+        
         -- Generate buffer queue for each sound.
         loadBuffer sf = do
             buf <- createBuffer $ File $ soundPath sf
@@ -121,8 +119,7 @@ loadLevels = do
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
     return levels
 
-incPlayerSprite :: (MonadRWS Environment [String] GameState m) =>
-    m ()
+incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
     movement <- use (gPlayerState . pMovement)
     case movement of
@@ -133,8 +130,7 @@ incPlayerSprite = do
         
     
 
-getPlayerSprite :: (MonadRWS Environment [String] GameState m) => 
-    m Picture
+getPlayerSprite :: (PureRWS m) => m Picture
 getPlayerSprite = do
     env <- ask
     
@@ -150,8 +146,7 @@ getPlayerSprite = do
         FaceLeft  -> lFaces !! i
     
 
-getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
-    m (Picture, Picture)
+getDoorSprite :: (PureRWS m) => m (Picture, Picture)
 getDoorSprite = do
     env <- ask
     isDoorOpen <- use gDoorOpen
@@ -166,15 +161,14 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
-playSound :: SoundType -> RWST Environment [String] GameState IO ()
+playSound :: SoundType -> RWSIO ()
 playSound s = do
     env <- ask
     let soundContext = view (eSounds . sContext) env
     let soundSources = view (eSounds . sSources) env
-    withProgNameAndArgs runALUTUsingCurrentContext $ \_ _ -> do
+    withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
         currentContext $= Just soundContext
-        Sound.play $ maybeToList $ lookup s soundSources
-        return ()
+        Sound.play . maybeToList $ lookup s soundSources
     
 
 getCollidables :: [CellType] -- this is a list of collidables cell types

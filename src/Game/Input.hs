@@ -6,8 +6,8 @@ import Control.Lens
 import Control.Monad.RWS
 import Control.Lens
 
-import Game.Action
 import Game.AssetManagement
+import Game.Data.Alias
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
@@ -17,7 +17,7 @@ import Graphics.Gloss.Interface.IO.Game
 
 --TODO: Add text "Press 'p' to continue" or similar. t
 
-handleKeys :: Event -> RWST Environment [String] GameState IO GameState
+handleKeys :: Event -> RWSIO GameState
 handleKeys e = do
     isPaused <- use gPaused
     heading  <- use (gPlayerState . pHeading)
@@ -46,14 +46,14 @@ handleKeys e = do
     newState <- get
     return newState
 
-pauseGame :: (MonadRWS Environment [String] GameState m) => m ()
+pauseGame :: (PureRWS m) => m ()
 pauseGame = do
     isPaused <- use gPaused
     case isPaused of
         False -> gPaused .= True
         True -> gPaused .= False
 
-moveUp :: (MonadRWS Environment [String] GameState m) => m ()
+moveUp :: (PureRWS m) => m ()
 moveUp = do
     env <- ask
     let tileSize = view eTileSize env
@@ -70,17 +70,17 @@ moveUp = do
         
     
 
-moveLeft :: (MonadRWS Environment [String] GameState m) => m ()
+moveLeft :: (PureRWS m) => m ()
 moveLeft = do
     gPlayerState . pMovement .= MoveLeft
     gPlayerState . pHeading  .= FaceLeft
 
-moveRight :: (MonadRWS Environment [String] GameState m) => m () 
+moveRight :: (PureRWS m) => m () 
 moveRight = do
     gPlayerState . pMovement .= MoveRight
     gPlayerState . pHeading  .= FaceRight 
 
-stopMoveLeft :: (MonadRWS Environment [String] GameState m) => m () 
+stopMoveLeft :: (PureRWS m) => m () 
 stopMoveLeft = do
     movement <- use (gPlayerState . pMovement)
     case movement of
@@ -88,7 +88,7 @@ stopMoveLeft = do
         _        -> return ()
     
 
-stopMoveRight :: (MonadRWS Environment [String] GameState m) => m () 
+stopMoveRight :: (PureRWS m) => m () 
 stopMoveRight = do
     movement <- use (gPlayerState . pMovement)
     case movement of
