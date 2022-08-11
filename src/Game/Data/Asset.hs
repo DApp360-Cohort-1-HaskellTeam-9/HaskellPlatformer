@@ -20,6 +20,7 @@ data Assets
     , _aTxtPause :: Picture
     , _aTxtTitle :: Picture
     , _aTxtEnter :: Picture
+    , _aTxtDigits:: [Picture]
     , _aLvlNames :: [String] 
     , _aLvlFiles :: [String]
 --  , we can expand as many as we need later

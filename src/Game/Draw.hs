@@ -129,14 +129,29 @@ renderBackground = do
     case imgToUse of
         Nothing -> return []
         Just x  -> return [x]
-    
+
+renderDigits :: String -> [Picture] -> [Picture]
+renderDigits [] _ = []
+renderDigits (x:xs) digits = digits !! read [x] : renderDigits xs digits  -- Will crash timer reaches 0
+
+addShift :: [Picture] -> Float -> Float -> [Picture]
+addShift [] _ _ = []  -- 30 is width of digit picture
+addShift (x:xs) xPos yPos = (uncurry translate (xPos - fromIntegral (30 * length xs), yPos) x) : (addShift xs xPos yPos)
+
 renderTimer :: (PureRWS m) => m [Picture]
 renderTimer = do
     env <- ask
     timeRemaining <- use gTimeRemaining
-    let timer = text (show timeRemaining)
-    --return [timer]
-    return []
+    let timerText = show . round $ timeRemaining
+    let windowWidth = view eWindowWidth env
+    let windowHeight = view eWindowHeight env
+    let tileSize     = view eTileSize env
+    let digits = view (eSprites . aTxtDigits) env
+    let timerPics = renderDigits timerText digits
+    let xPos = fromIntegral windowWidth / 2  - tileSize / 2
+    let yPos = fromIntegral windowHeight / 2 - tileSize / 2
+    let timer = addShift timerPics xPos yPos
+    return timer
 
 {-
 playSFX :: RWSIO ()
