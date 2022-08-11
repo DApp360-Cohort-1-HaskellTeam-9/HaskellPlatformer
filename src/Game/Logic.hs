@@ -5,6 +5,7 @@ module Game.Logic where
 import Control.Lens
 import Control.Monad.RWS
 
+import Game.Data.Asset
 import Game.AssetManagement
 import Game.Data.Environment
 import Game.Data.State
@@ -49,8 +50,7 @@ isHit (x1, y1) (x2, y2) tileSize =
     y1            < y2 + tileSize &&
     y1 + tileSize > y2
 
-openDoor :: (MonadRWS Environment [String] GameState m) =>
-    m Bool
+openDoor :: RWST Environment [String] GameState IO Bool
 openDoor = do
     gs <- get
     collectedKeys   <- use (gPlayerState . pCollectedKeys)
@@ -59,24 +59,49 @@ openDoor = do
 
     paused <- use gPaused
     
-    return $
-        case compare collectedKeys totalKeys of
-            GT -> False
-            LT -> False
-            EQ -> True
+    if collectedKeys == totalKeys
+        then do
+            isDoorOpen <- use gDoorOpen
+            unless isDoorOpen $ playSound DoorOpen
+            return True
+        else do
+            return False
         
     
 
-incKeys :: (MonadRWS Environment [String] GameState m) => 
+-- incCoin :: RWST Environment [String] GameState IO Int
+-- incCoin = do
+--     env       <- ask
+--     playerPos <- use (gPlayerState . pPosition)
+--     -- collectedKeys <- use (gPlayerState . pCollectedKeys)
+    
+--     let coinCell = getCoinCellType
+--     coinFound <- collideWith coinCell playerPos
+    
+--     case coinFound of
+--         Nothing -> do
+--             return 0
+--         Just _  -> do
+--             playSound Coin
+--             return 1
+        
+    
+
+incKeys :: (MonadRWS Environment [String] GameState m) =>
     m Int
 incKeys = do
-    env             <- ask
-    playerPos       <- use (gPlayerState . pPosition)
-    collectedKeys   <- use (gPlayerState . pCollectedKeys)
+    env           <- ask
+    playerPos     <- use (gPlayerState . pPosition     )
+    collectedKeys <- use (gPlayerState . pCollectedKeys)
+    
     let keyCell = getKeyCellType -- view (eSprites . aKey) env
     keyFound <- collideWith keyCell playerPos
-
-    return $ case keyFound of
-        Nothing -> collectedKeys
-        Just _  -> collectedKeys + 1
+    
+    case keyFound of
+        Nothing -> do
+            return collectedKeys
+        Just _  -> do
+            -- playSound Key
+            return . succ $ collectedKeys
+        
     

@@ -50,13 +50,34 @@ updateGame sec = do
             movePlayer
             incPlayerSprite
             
+            player <- use (gPlayerState . pPosition)
+            let coin = getCoinCellType
+            let key  = getKeyCellType
+            let door = getDoorCellType
+
+            hitCoin <- collideWith coin player
+            case hitCoin of
+                Just cn -> playSound Coin
+                Nothing -> return ()
+            
+            hitKey <- collideWith key player
+            case hitKey of
+                Just ky -> playSound Key
+                Nothing -> return ()
+            
+            hitDoor <- collideWith door player
+            isDoorOpen <- use gDoorOpen
+            when isDoorOpen $ case hitDoor of
+                Just cn -> playSound DoorClose
+                Nothing -> return ()
+            
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
             
             updatedLevel  <- removeItem
             gCurrentLevel .= updatedLevel
             
-            door <- openDoor    
+            door <- openDoor
             gDoorOpen .= door
             
             nextState <- get
