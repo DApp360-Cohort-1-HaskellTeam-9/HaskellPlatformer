@@ -132,7 +132,9 @@ renderBackground = do
 
 renderDigits :: String -> [Picture] -> [Picture]
 renderDigits [] _ = []
-renderDigits (x:xs) digits = digits !! read [x] : renderDigits xs digits  -- Will crash timer reaches 0
+renderDigits (x:xs) digits 
+            | x == '-'  = [digits !! 0]                               -- keep showing 0 when timer goes negative
+            | otherwise = digits !! read [x] : renderDigits xs digits
 
 addShift :: [Picture] -> Float -> Float -> [Picture]
 addShift [] _ _ = []  -- 30 is width of digit picture
