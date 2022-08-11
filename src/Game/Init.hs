@@ -9,18 +9,18 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Data.Asset
 
-import Sound.ALUT
-
 initEnv :: [String] -> IO Environment
 initEnv args = do
     assets <- initAssets
+    sounds <- initSound
     return Environment
         { _eTileSize = 32
         , _eWindowWidth = 1024
         , _eWindowHeight = 768
         , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
                            -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
-        , _eSprites  = assets
+        , _eSprites = assets
+        , _eSounds  = sounds
         }
     
 
@@ -29,14 +29,6 @@ initState args = do
     env <- ask
     let level1 = head $ view (eSprites . aLevels) env
     let levelCells = runReader (prepareData . reverse . lines $ level1) env
-    
-    -- TODO: Create a background thread, play bgm instead
-    withProgNameAndArgs runALUT $ \_progName _args -> do
-        introBuffer <- createBuffer . File $ "./assets/sounds/file2.au"
-        introSource <- genObjectName
-        buffer introSource $= Just introBuffer
-        play [introSource]
-        sleep 1
     
     return GameState
         { _gCurrentLevel  = levelCells

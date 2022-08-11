@@ -46,7 +46,7 @@ movePlayer = do
     hitX <- collideWith colliders (posX', posY)
     hitY <- collideWith colliders (posX, posY')
     
-    -- recalculate position and speed
+    -- recalculate X-Axis position and speed
     face <- use (gPlayerState . pHeading)
     let dirX = case face of
             FaceLeft -> -1
@@ -55,9 +55,11 @@ movePlayer = do
     let (posX'', spdX'') = case hitX of -- reset speed on collision
             Just ((x, y), _) -> (x - tileSize * dirX, 0)
             Nothing          -> (posX', spdX')
+    
+    -- recalculate Y-Axis position and speed
     let (bounciness, bounceStop) = case hitY of
-            Nothing            -> (0, 0)
             Just (_, cellType) -> getBounciness cellType
+            Nothing            -> (0, 0)
     let bounce  = bounciness * negate spdY'
     let bounce' = if abs bounce < bounceStop
                   then 0 else bounce
