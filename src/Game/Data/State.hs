@@ -40,7 +40,7 @@ data GameState
     , _gTotalKeys      :: Int
     , _gPaused         :: Bool
     , _gDoorOpen       :: Bool
-    , _gTimeRemaining  :: Int  -- Time limit
+    , _gTimeRemaining  :: Float  -- Time limit
     , _gDeltaSec       :: Float
     , _gForce          :: Float
     , _gGameScene      :: GameScene

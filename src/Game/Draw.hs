@@ -25,13 +25,15 @@ renderGame = do
     playerSprite <- getPlayerSprite
     text         <- renderText
     background   <- renderBackground
+    timer        <- renderTimer
 
     --Probably need to replace with renderLevel function?
     return . pictures $ 
         background ++ 
         uncurry translate playerPos playerSprite :
         tiles ++ 
-        text
+        text ++
+        timer
     
 
 updateGame :: Float -> RWSIO GameState
@@ -40,7 +42,8 @@ updateGame sec = do
     
     gDeltaSec .= sec -- might need this for other screen states
                      -- normally, the value should be 1/FPS
-    
+    timeRemaining <- use gTimeRemaining
+    gTimeRemaining .= timeRemaining - sec
     paused <- use gPaused
     
     case paused of
@@ -127,7 +130,13 @@ renderBackground = do
         Nothing -> return []
         Just x  -> return [x]
     
-
+renderTimer :: (PureRWS m) => m [Picture]
+renderTimer = do
+    env <- ask
+    timeRemaining <- use gTimeRemaining
+    let timer = text (show timeRemaining)
+    --return [timer]
+    return []
 
 {-
 playSFX :: RWSIO ()
