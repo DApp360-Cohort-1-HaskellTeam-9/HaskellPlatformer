@@ -13,7 +13,7 @@ data Environment
     , _eTileSize     :: Float -- All objects are same size, including player
     , _eFPS          :: Int -- frame rate
     , _eSprites      :: Assets
-    , _eSounds       :: SoundInfo
+--    , _eSounds       :: SoundInfo
 --  , other configs, etc...
     }
 makeLenses ''Environment
