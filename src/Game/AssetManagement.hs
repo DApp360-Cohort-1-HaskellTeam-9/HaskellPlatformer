@@ -5,6 +5,7 @@ module Game.AssetManagement where
 import Control.Lens
 import Control.Monad.RWS
 
+import Game.Data.Alias
 import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
@@ -118,8 +119,7 @@ loadLevels = do
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
     return levels
 
-incPlayerSprite :: (MonadRWS Environment [String] GameState m) =>
-    m ()
+incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
     movement <- use (gPlayerState . pMovement)
     case movement of
@@ -130,8 +130,7 @@ incPlayerSprite = do
         
     
 
-getPlayerSprite :: (MonadRWS Environment [String] GameState m) => 
-    m Picture
+getPlayerSprite :: (PureRWS m) => m Picture
 getPlayerSprite = do
     env <- ask
     
@@ -147,8 +146,7 @@ getPlayerSprite = do
         FaceLeft  -> lFaces !! i
     
 
-getDoorSprite :: (MonadRWS Environment [String] GameState m) =>
-    m (Picture, Picture)
+getDoorSprite :: (PureRWS m) => m (Picture, Picture)
 getDoorSprite = do
     env <- ask
     isDoorOpen <- use gDoorOpen
@@ -163,7 +161,7 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
-playSound :: SoundType -> RWST Environment [String] GameState IO ()
+playSound :: SoundType -> RWSIO ()
 playSound s = do
     env <- ask
     let soundContext = view (eSounds . sContext) env

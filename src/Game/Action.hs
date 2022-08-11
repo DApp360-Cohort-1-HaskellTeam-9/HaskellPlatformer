@@ -6,13 +6,13 @@ import Control.Lens
 import Control.Monad.RWS
 
 import Game.AssetManagement
+import Game.Data.Alias
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
 import Game.Logic
 
-movePlayer :: (MonadRWS Environment [String] GameState m) =>
-    m ()
+movePlayer :: (PureRWS m) => m ()
 movePlayer = do
     env <- ask
     let tileSize = view eTileSize env
