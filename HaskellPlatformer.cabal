@@ -59,6 +59,7 @@ executable HaskellPlatformer
                  ,    Game.Data.Enum
                  ,    Game.Data.Environment
                  ,    Game.Data.State
+                 ,    Game.Data.Alias
                  ,    Game.Draw
                  ,    Game.Init
                  ,    Game.Input

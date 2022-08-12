@@ -21,25 +21,32 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg      <- loadBMP "./assets/graphics/items/key.bmp"
-    txtCont     <- loadBMP "./assets/graphics/text/continue.bmp" 
-    coinImgs    <- loadCoin
-    doorImgs    <- loadDoor
-    bgImgs      <- loadBackgrounds
-    playerImgs  <- loadPlayers
-    baseImgs    <- loadBaseTiles
-    lvlList     <- loadLevels
-    
+    keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
+    txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
+    txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
+    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp"
+    txtDigits    <- loadTxtDigits
+    coinImgs     <- loadCoin
+    doorImgs     <- loadDoor
+    bgImgs       <- loadBackgrounds
+    playerImgs   <- loadPlayers
+    baseImgs     <- loadBaseTiles
+    lvlData      <- loadLevels
+
     return Assets
-        { _aPlayer  = playerImgs
-        , _aKey     = (keyImg, 'k')
-        , _aDoor    = doorImgs
-        , _aBase    = last $ baseImgs -- TODO: Is there a better function?
-        , _aGrass   = head $ baseImgs -- TODO: Is there a better function?
-        , _aCoin    = coinImgs
-        , _aBgImg   = bgImgs
-        , _aTxtCont = txtCont
-        , _aLevels  = lvlList
+        { _aPlayer     = playerImgs
+        , _aKey        = (keyImg, 'k')
+        , _aDoor       = doorImgs
+        , _aBase       = last $ baseImgs -- TODO: Is there a better function?
+        , _aGrass      = head $ baseImgs -- TODO: Is there a better function?
+        , _aCoin       = coinImgs
+        , _aBgImg      = bgImgs
+        , _aTxtPause   = txtPause
+        , _aTxtEnter   = txtEnter
+        , _aTxtTitle   = txtTitle
+        , _aTxtDigits  = txtDigits
+        , _aLvlNames   = fst lvlData
+        , _aLvlFiles   = snd lvlData
         }
     
 
@@ -104,20 +111,28 @@ loadDoor = do
     doorImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return doorImgs
 
+loadTxtDigits :: IO [Picture]
+loadTxtDigits = do
+    let dir = rootDir ++ "text/"
+    let imgNames = "0123456789"
+    digitImgs <- mapM (loadBMP . (\n -> dir ++ n : ".bmp")) imgNames
+    return digitImgs
+
+
 --Add more backgrounds later
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = ["skyBackground", "mountainBackground"]
+    let imgNames = ["Level1", "Level2","Level3", "LevelStart", "LevelCredits"] --Placeholder for 5 backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
-loadLevels :: IO [String]
+loadLevels :: IO ([String],[String])
 loadLevels = do
     let dir = "assets/levels/"
-    let lvlNames = ["level1", "level2", "level3"]
+    let lvlNames = ["Level1", "Level2","Level3"]
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
-    return levels
+    return $ (lvlNames ++ ["LevelStart", "LevelCredits"], levels)
 
 incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
@@ -134,7 +149,7 @@ getPlayerSprite :: (PureRWS m) => m Picture
 getPlayerSprite = do
     env <- ask
     
-    let playerSprites    = view (eSprites . aPlayer) env
+    let playerSprites    = view (eAssets . aPlayer) env
     let (lFaces, rFaces) = splitAt 4 playerSprites
     
     spriteIndex <- use (gPlayerState . pSpriteIndex)
@@ -150,7 +165,7 @@ getDoorSprite :: (PureRWS m) => m (Picture, Picture)
 getDoorSprite = do
     env <- ask
     isDoorOpen <- use gDoorOpen
-    let doorImgs = (view (eSprites . aDoor) env)
+    let doorImgs = (view (eAssets . aDoor) env)
     let (doorTopImg,doorBottomImg) = 
             case isDoorOpen of
                 True  -> case   (doorImgs ^? element 1, doorImgs ^? element 0) of

@@ -19,7 +19,7 @@ import Graphics.Gloss.Interface.IO.Game
 
 handleKeys :: Event -> RWSIO GameState
 handleKeys e = do
-    isPaused <- use gPaused
+    scene <- use gGameScene
     heading  <- use (gPlayerState . pHeading)
     case e of
         (EventKey (Char 'p') Down _ _) -> do
@@ -28,30 +28,34 @@ handleKeys e = do
                 FaceRight -> stopMoveRight
                 FaceLeft  -> stopMoveLeft
         _                              ->
-            case isPaused of
-                True -> return ()
-                False -> case e of 
-                        (EventKey (SpecialKey KeyLeft) Down _ _)  -> 
-                            moveLeft
-                        (EventKey (SpecialKey KeyRight) Down _ _) -> 
-                            moveRight
-                        (EventKey (SpecialKey KeyUp) Down _ _)    -> 
-                            moveUp
-                        (EventKey (SpecialKey KeyLeft) Up _ _)    -> 
-                            stopMoveLeft
-                        (EventKey (SpecialKey KeyRight) Up _ _)   -> 
-                            stopMoveRight
-                        _                                         ->
-                            return ()
+            case scene of
+                ScenePause -> return ()
+                _           -> case e of 
+                                    (EventKey (SpecialKey KeyLeft) Down _ _)  -> 
+                                        moveLeft
+                                    (EventKey (SpecialKey KeyRight) Down _ _) -> 
+                                        moveRight
+                                    (EventKey (SpecialKey KeyUp) Down _ _)    -> 
+                                        moveUp
+                                    (EventKey (SpecialKey KeyLeft) Up _ _)    -> 
+                                        stopMoveLeft
+                                    (EventKey (SpecialKey KeyRight) Up _ _)   -> 
+                                        stopMoveRight
+                                    _                                         ->
+                                        return ()
     newState <- get
     return newState
 
 pauseGame :: (PureRWS m) => m ()
 pauseGame = do
-    isPaused <- use gPaused
-    case isPaused of
-        False -> gPaused .= True
-        True -> gPaused .= False
+    scene    <- use gGameScene
+
+    case scene of
+        SceneLevel -> gGameScene .= ScenePause
+        ScenePause -> gGameScene .= SceneLevel
+        _          -> return ()
+        
+    return ()
 
 moveUp :: (PureRWS m) => m ()
 moveUp = do

@@ -12,25 +12,54 @@ import Game.Data.Asset
 import Game.Data.Environment
 import Game.Data.State
 import Game.Logic
+import Game.Data.Enum
 
 import Graphics.Gloss
 
 renderGame :: RWSIO Picture
 renderGame = do
     env          <- ask
-    level        <- use gCurrentLevel
+    level        <- use (gLevelState . lLevelCells)
     tiles        <- mapM drawTile level
     playerPos    <- use (gPlayerState . pPosition)
     playerSprite <- getPlayerSprite
-    continue     <- renderContinue
+    text         <- renderText
     background   <- renderBackground
+    timer        <- renderTimer
+    scene        <- use gGameScene
+    titlePic     <- scaleTitle
 
-    return . pictures $ 
-        background ++ 
-        uncurry translate playerPos playerSprite : 
-        tiles ++ 
-        continue
-    
+    let game = pictures $ 
+            case scene of 
+                    ScenePause -> 
+                        background ++ 
+                        uncurry translate playerPos playerSprite : 
+                        tiles ++ 
+                        text
+                    SceneStart      ->
+                        background ++ 
+                        titlePic ++
+                        text
+                    SceneCredits    ->
+                        background ++ 
+                        text
+                    SceneLevel      ->
+                        background ++ 
+                        uncurry translate playerPos playerSprite :
+                        tiles ++ 
+                        text ++
+                        timer        
+                    SceneWin        ->
+                        background ++ 
+                        tiles ++ 
+                        text
+                    SceneLose       ->
+                        background ++ 
+                        tiles ++ 
+                        text
+                    SceneTransition ->
+                        [] --Not sure
+    return game
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
@@ -38,13 +67,15 @@ updateGame sec = do
     
     gDeltaSec .= sec -- might need this for other screen states
                      -- normally, the value should be 1/FPS
-    
-    paused <- use gPaused
-    
-    case paused of
-        True -> 
+    timeRemaining <- use gTimeRemaining
+    gTimeRemaining .= timeRemaining - sec
+
+    scene <- use gGameScene
+
+    case scene of
+        ScenePause -> 
             return gs
-        False -> do
+        _       -> do
             movePlayer
             incPlayerSprite
             -- playSFX
@@ -53,7 +84,7 @@ updateGame sec = do
             gPlayerState . pCollectedKeys .= keys
             
             updatedLevel  <- removeItem
-            gCurrentLevel .= updatedLevel
+            gLevelState . lLevelCells .= updatedLevel
             
             door <- openDoor
             gDoorOpen .= door
@@ -67,11 +98,11 @@ updateGame sec = do
 renderTile :: (PureRWS m) => CellType -> m Picture
 renderTile cellType = do
     env <- ask
-    let baseImg  = view (eSprites . aBase ) env
-        grassImg = view (eSprites . aGrass) env
-        coinImg  = head $ view (eSprites . aCoin ) env
-        keyImg   = view (eSprites . aKey  ) env
-        doorImgs = (view (eSprites . aDoor) env)
+    let baseImg  = view (eAssets . aBase ) env
+        grassImg = view (eAssets . aGrass) env
+        coinImg  = head $ view (eAssets . aCoin ) env
+        keyImg   = view (eAssets . aKey  ) env
+        doorImgs = view (eAssets . aDoor) env
 
     isDoorOpen <- use gDoorOpen
 
@@ -91,26 +122,50 @@ drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
 
---TEXT : uncurry translate pos $ scale 0.2 0.2 $ text "TESTING 123!"
+renderText :: (MonadRWS Environment [String] GameState m) =>
+    m [Picture]
+renderText = do
+    env          <- ask
+    scene       <- use gGameScene
+    level        <- use (gLevelState . lLevelName)
+    let continue  = view (eAssets . aTxtPause) env
+    let title     = view (eAssets . aTxtTitle) env
+    let enter     = view (eAssets . aTxtEnter) env
+    let startText = [uncurry translate (0,-200) enter] 
 
-renderContinue :: (PureRWS m) => m [Picture]
-renderContinue = do
-    env      <- ask
-    paused   <- use gPaused
-    let continue = view (eSprites . aTxtCont) env
-    case paused of
-        True  -> return [continue]
-        False -> return []
+    case scene of
+        ScenePause  -> case level of
+                    LevelStart  -> return startText --Add credits screen?
+                    _           -> return [continue]
+        _           -> case level of
+                    LevelStart  -> return startText 
+                    _           -> return []
+
+--Will fix up numbers 
+scaleTitle :: (MonadRWS Environment [String] GameState m) => m [Picture]
+scaleTitle = do
+    env <- ask
+    timeRemaining <- use gTimeRemaining
+    let delta = (120 - timeRemaining) * 2
+    let fps = view (eFPS) env
+    let title  = view (eAssets . aTxtTitle) env
+    let newDelta =  if delta >= 10
+                    then 10
+                    else delta
+    let scaleXY = newDelta / 10
+    let pic = scale scaleXY scaleXY $ uncurry translate (0,100) title
+    return [pic]
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
     env      <- ask
-    level   <- use gLevelName
-
-    let lvlList = view (eSprites . aLevels) env
-    let bgImgs = view (eSprites . aBgImg) env
+    level    <- use (gLevelState . lLevelName)
+    scene    <- use (gGameScene)   
+    
+    let lvlList = view (eAssets . aLvlNames) env
+    let bgImgs = view (eAssets . aBgImg) env
     let zipLvls = zip lvlList bgImgs
-    let imgToUse = lookup level zipLvls
+    let imgToUse = lookup (show level) zipLvls
 
     case imgToUse of
         Nothing -> return []
