@@ -73,7 +73,8 @@ checkDoor = do
             when isDoorOpen $ do
                 env <- ask
                 
-                gPlayerState .= initPlayer
+                gPlayerState .= initPlayer  -- reset player
+                gParalax     .= initParalax -- reset paralax
                 
                 currLevel    <- use (gLevelState . lLevelName)
                 let nextLevel = flip runReader env . loadLevel . succ $ currLevel
@@ -86,19 +87,8 @@ checkDoor = do
                 gDoorOpen  .= False
                 -- TODO: gTimeRemaining
                 -- TODO: gGameScene .= SceneTransition
-                -- GameState 
-                --     { _gPlayerState    :: PlayerState
-                --     , _gLevelState     :: LevelState
-                --     , _gTotalKeys      :: Int
-                --     --, _gPaused         :: Bool
-                --     , _gDoorOpen       :: Bool
-                --     , _gTimeRemaining  :: Float  -- Time limit
-                --     , _gDeltaSec       :: Float
-                --     , _gForce          :: Float
-                --     , _gGameScene      :: GameScene
-                --     }
         Nothing -> return ()
-    return ()
+    
 
 -- incCoin :: RWST Environment [String] GameState IO Int
 -- incCoin = do
