@@ -38,6 +38,7 @@ initState args = do
         , _gDeltaSec      = 0
         , _gForce         = 10 -- gravity constant for this level
         , _gGameScene     = SceneLevel
+        , _gParalax       = initParalax
         }
     
 
@@ -55,3 +56,9 @@ initPlayer = PlayerState
 
 initLevel :: Reader Environment LevelState
 initLevel = loadLevel minBound
+
+initParalax :: Paralax
+initParalax = Paralax
+    { _pTargetParalax = (0, 0)
+    , _pCurrParalax   = (0, 0)
+    }
