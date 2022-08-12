@@ -19,8 +19,8 @@ initEnv args = do
         , _eWindowHeight = 768
         , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
                            -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
-        , _eSprites = assets
         --, _eSounds  = sounds
+        , _eAssets = assets
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
@@ -41,11 +41,11 @@ initState args = do
         , _gLevelState    = runReader (initLevel) env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
-        , _gPaused        = False
+        --, _gPaused        = False
         , _gTimeRemaining = 120
         , _gDeltaSec      = 0
         , _gForce         = 10 -- gravity constant for this level
-        , _gGameScene     = SceneStart
+        , _gGameScene     = SceneLevel
         }
     
 
@@ -64,7 +64,7 @@ initPlayer = PlayerState
 initLevel :: Reader Environment LevelState
 initLevel = do
     env <- ask
-    let level1 = (view (eSprites . aLvlFiles) env) !! 1
+    let level1 = (view (eAssets . aLvlFiles) env) !! 0
     let levelCells = runReader (prepareData . reverse . lines $ level1) env
 
     return 

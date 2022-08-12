@@ -23,9 +23,9 @@ data PlayerFacing
 
 -- Determines current level
 data LevelName
-    = LevelStart
-    | Level1
+    = Level1
     | Level2
     | Level3
+    | LevelStart
     | LevelCredits
     deriving Show

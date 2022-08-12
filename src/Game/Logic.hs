@@ -55,8 +55,6 @@ openDoor = do
     collectedKeys   <- use (gPlayerState . pCollectedKeys)
     totalKeys       <- use gTotalKeys
     currentLevel    <- use (gLevelState . lLevelCells)
-
-    paused <- use gPaused
     
     if collectedKeys == totalKeys
         then do

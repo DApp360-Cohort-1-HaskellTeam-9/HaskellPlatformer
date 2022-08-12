@@ -124,16 +124,16 @@ loadTxtDigits = do
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = ["LevelStart","Level1", "Level2","Level3","LevelCredits"] --Placeholder for 4 backgrounds
+    let imgNames = ["Level1", "Level2","Level3", "LevelStart", "LevelCredits"] --Placeholder for 5 backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
 loadLevels :: IO ([String],[String])
 loadLevels = do
     let dir = "assets/levels/"
-    let lvlNames = ["LevelStart","Level1", "Level2","Level3","LevelCredits"]
+    let lvlNames = ["Level1", "Level2","Level3"]
     levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
-    return $ (lvlNames, levels)
+    return $ (lvlNames ++ ["LevelStart", "LevelCredits"], levels)
 
 incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
@@ -150,7 +150,7 @@ getPlayerSprite :: (PureRWS m) => m Picture
 getPlayerSprite = do
     env <- ask
     
-    let playerSprites    = view (eSprites . aPlayer) env
+    let playerSprites    = view (eAssets . aPlayer) env
     let (lFaces, rFaces) = splitAt 4 playerSprites
     
     spriteIndex <- use (gPlayerState . pSpriteIndex)
@@ -166,7 +166,7 @@ getDoorSprite :: (PureRWS m) => m (Picture, Picture)
 getDoorSprite = do
     env <- ask
     isDoorOpen <- use gDoorOpen
-    let doorImgs = (view (eSprites . aDoor) env)
+    let doorImgs = (view (eAssets . aDoor) env)
     let (doorTopImg,doorBottomImg) = 
             case isDoorOpen of
                 True  -> case   (doorImgs ^? element 1, doorImgs ^? element 0) of

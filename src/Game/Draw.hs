@@ -26,15 +26,40 @@ renderGame = do
     text         <- renderText
     background   <- renderBackground
     timer        <- renderTimer
+    scene        <- use gGameScene
+    titlePic     <- scaleTitle
 
-    --Probably need to replace with renderLevel function?
-    return . pictures $ 
-        background ++ 
-        uncurry translate playerPos playerSprite :
-        tiles ++ 
-        text ++
-        timer
-    
+    let game = pictures $ 
+            case scene of 
+                    ScenePause -> 
+                        background ++ 
+                        uncurry translate playerPos playerSprite : 
+                        tiles ++ 
+                        text
+                    SceneStart      ->
+                        background ++ 
+                        titlePic ++
+                        text
+                    SceneCredits    ->
+                        background ++ 
+                        text
+                    SceneLevel      ->
+                        background ++ 
+                        uncurry translate playerPos playerSprite :
+                        tiles ++ 
+                        text ++
+                        timer        
+                    SceneWin        ->
+                        background ++ 
+                        tiles ++ 
+                        text
+                    SceneLose       ->
+                        background ++ 
+                        tiles ++ 
+                        text
+                    SceneTransition ->
+                        [] --Not sure
+    return game
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
@@ -44,12 +69,13 @@ updateGame sec = do
                      -- normally, the value should be 1/FPS
     timeRemaining <- use gTimeRemaining
     gTimeRemaining .= timeRemaining - sec
-    paused <- use gPaused
-    
-    case paused of
-        True -> 
+
+    scene <- use gGameScene
+
+    case scene of
+        ScenePause -> 
             return gs
-        False -> do
+        _       -> do
             movePlayer
             incPlayerSprite
             --playSFX
@@ -66,17 +92,16 @@ updateGame sec = do
             nextState <- get
             return nextState
         
-    
 
 -- Helper Functions:
 renderTile :: (PureRWS m) => CellType -> m Picture
 renderTile cellType = do
     env <- ask
-    let baseImg  = view (eSprites . aBase ) env
-        grassImg = view (eSprites . aGrass) env
-        coinImg  = head $ view (eSprites . aCoin ) env
-        keyImg   = view (eSprites . aKey  ) env
-        doorImgs = view (eSprites . aDoor) env
+    let baseImg  = view (eAssets . aBase ) env
+        grassImg = view (eAssets . aGrass) env
+        coinImg  = head $ view (eAssets . aCoin ) env
+        keyImg   = view (eAssets . aKey  ) env
+        doorImgs = view (eAssets . aDoor) env
 
     isDoorOpen <- use gDoorOpen
 
@@ -100,29 +125,44 @@ renderText :: (MonadRWS Environment [String] GameState m) =>
     m [Picture]
 renderText = do
     env          <- ask
-    paused       <- use gPaused
+    scene       <- use gGameScene
     level        <- use (gLevelState . lLevelName)
-    let continue  = view (eSprites . aTxtPause) env
-    let title     = view (eSprites . aTxtTitle) env
-    let enter     = view (eSprites . aTxtEnter) env
-    let startText = [uncurry translate (0,200) title, uncurry translate (0,-200) enter] 
+    let continue  = view (eAssets . aTxtPause) env
+    let title     = view (eAssets . aTxtTitle) env
+    let enter     = view (eAssets . aTxtEnter) env
+    let startText = [uncurry translate (0,-200) enter] 
 
-    case paused of
-        True  -> case level of
+    case scene of
+        ScenePause  -> case level of
                     LevelStart  -> return startText --Add credits screen?
                     _           -> return [continue]
-        False -> case level of
+        _           -> case level of
                     LevelStart  -> return startText 
                     _           -> return []
 
+--Will fix up numbers 
+scaleTitle :: (MonadRWS Environment [String] GameState m) => m [Picture]
+scaleTitle = do
+    env <- ask
+    timeRemaining <- use gTimeRemaining
+    let delta = (120 - timeRemaining) * 2
+    let fps = view (eFPS) env
+    let title  = view (eAssets . aTxtTitle) env
+    let newDelta =  if delta >= 10
+                    then 10
+                    else delta
+    let scaleXY = newDelta / 10
+    let pic = scale scaleXY scaleXY $ uncurry translate (0,100) title
+    return [pic]
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
     env      <- ask
-    level   <- use (gLevelState . lLevelName)
-
-    let lvlList = view (eSprites . aLvlNames) env
-    let bgImgs = view (eSprites . aBgImg) env
+    level    <- use (gLevelState . lLevelName)
+    scene    <- use (gGameScene)   
+    
+    let lvlList = view (eAssets . aLvlNames) env
+    let bgImgs = view (eAssets . aBgImg) env
     let zipLvls = zip lvlList bgImgs
     let imgToUse = lookup (show level) zipLvls
 
@@ -148,7 +188,7 @@ renderTimer = do
     let windowWidth = view eWindowWidth env
     let windowHeight = view eWindowHeight env
     let tileSize     = view eTileSize env
-    let digits = view (eSprites . aTxtDigits) env
+    let digits = view (eAssets . aTxtDigits) env
     let timerPics = renderDigits timerText digits
     let xPos = fromIntegral windowWidth / 2  - tileSize / 2
     let yPos = fromIntegral windowHeight / 2 - tileSize / 2
