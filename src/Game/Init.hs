@@ -10,7 +10,9 @@ import Game.Data.State
 initEnv :: [String] -> IO Environment
 initEnv args = do
     assets <- initAssets
+    -- ALUT
     -- sounds <- initSound
+    -- ENDALUT
     return Environment
         { _eTileSize = 32
         , _eWindowWidth = 1024
@@ -18,7 +20,9 @@ initEnv args = do
         , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
                            -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
         , _eAssets = assets
+        -- ALUT
         -- , _eSounds  = sounds
+        -- ENDALUT
         }
 
 initState :: [String] -> ReaderT Environment IO GameState

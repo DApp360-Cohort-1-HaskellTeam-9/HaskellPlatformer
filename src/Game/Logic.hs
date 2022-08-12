@@ -1,14 +1,12 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Game.Logic where
 
 import Control.Lens
 import Control.Monad.Reader
 import Control.Monad.RWS
 
-import Game.Data.Alias
 import Game.AssetManagement
-import Game.Data.Enum
+import Game.Data.Alias
+import Game.Data.Asset
 import Game.Data.Environment
 import Game.Data.State
 import Game.Init
@@ -55,7 +53,9 @@ openDoor = do
     if collectedKeys == totalKeys
         then do
             isDoorOpen <- use gDoorOpen
+            -- ALUT
             -- unless isDoorOpen $ playSound DoorOpen
+            -- ENDALUT
             return True
         else do
             return False
