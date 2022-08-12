@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts, RankNTypes #-}
-
 module Game.Draw where
 
 import Control.Lens
@@ -75,7 +73,9 @@ updateGame sec = do
         SceneLevel -> do
             movePlayer
             incPlayerSprite
+            -- ALUT
             -- playSFX
+            -- ENDALUT
             
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
@@ -191,6 +191,7 @@ renderTimer = do
     let timer = addShift timerPics xPos yPos
     return timer
 
+-- ALUT
 -- playSFX :: RWSIO ()
 -- playSFX = do
 --     player <- use (gPlayerState . pPosition)
@@ -211,6 +212,6 @@ renderTimer = do
 --     hitDoor <- collideWith door player
 --     isDoorOpen <- use gDoorOpen
 --     when isDoorOpen $ case hitDoor of
---         Just cn -> playSound DoorClose
+--         Just dr -> playSound DoorClose
 --         Nothing -> return ()
-    
+-- ENDALUT

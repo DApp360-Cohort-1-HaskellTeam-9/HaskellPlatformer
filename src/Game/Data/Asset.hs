@@ -34,6 +34,7 @@ data SoundType
     | DoorOpen
     | DoorClose
     deriving (Bounded, Enum, Eq)
+-- ALUT
 -- data SoundInfo
 --     = SoundInfo
 --     { _sDevice  :: Sound.Device
@@ -41,3 +42,4 @@ data SoundType
 --     , _sSources :: [(SoundType, Sound.Source)]
 --     }
 -- makeLenses ''SoundInfo
+-- ENDALUT

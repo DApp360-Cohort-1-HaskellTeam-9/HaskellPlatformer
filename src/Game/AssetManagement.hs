@@ -1,10 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Game.AssetManagement where
 
 import Control.Lens
 import Control.Monad.Reader
-import Control.Monad.RWS
 
 import Game.Data.Alias
 import Game.Data.Asset
@@ -52,10 +49,11 @@ initAssets = do
         }
     
 
+-- ALUT
 -- initSound :: IO SoundInfo
 -- initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
---     (Just device)  <- openDevice Nothing
---     (Just context) <- createContext device []
+--     Just device    <- openDevice Nothing
+--     Just context   <- createContext device []
 --     currentContext $= Just context
     
 --     let -- Credits to: dixonary / hake
@@ -81,6 +79,7 @@ initAssets = do
     
 --     -- Construct our stateful SoundInfo.
 --     return $ SoundInfo device context sounds
+-- ENDALUT
 
 rootDir :: String
 rootDir = "./assets/graphics/"
@@ -194,6 +193,7 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
+-- ALUT
 -- playSound :: SoundType -> RWSIO ()
 -- playSound s = do
 --     env <- ask
@@ -202,7 +202,7 @@ getDoorSprite = do
 --     withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
 --         currentContext $= Just soundContext
 --         Sound.play . maybeToList $ lookup s soundSources
-    
+-- ENDALUT
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)
