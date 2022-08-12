@@ -3,13 +3,16 @@
 module Game.Logic where
 
 import Control.Lens
+import Control.Monad.Reader
 import Control.Monad.RWS
 
 import Game.Data.Alias
-import Game.Data.Asset
 import Game.AssetManagement
+import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Game.Init
+import Game.Util
 
 import Graphics.Gloss
 
@@ -42,13 +45,6 @@ collideWith colliders point = do
         level
     
 
-isHit :: Point -> Point -> Float -> Bool
-isHit (x1, y1) (x2, y2) tileSize =
-    x1            < x2 + tileSize &&
-    x1 + tileSize > x2            &&
-    y1            < y2 + tileSize &&
-    y1 + tileSize > y2
-
 openDoor :: RWSIO Bool
 openDoor = do
     gs <- get
@@ -65,6 +61,44 @@ openDoor = do
             return False
         
     
+
+checkDoor :: (PureRWS m) => m ()
+checkDoor = do
+    let door = getDoorCellType
+    player  <- use (gPlayerState . pPosition)
+    hitDoor <- collideWith door player
+    case hitDoor of
+        Just dr -> do
+            isDoorOpen <- use gDoorOpen
+            when isDoorOpen $ do
+                env <- ask
+                
+                gPlayerState .= initPlayer
+                
+                currLevel    <- use (gLevelState . lLevelName)
+                let nextLevel = flip runReader env . loadLevel . succ $ currLevel
+                gLevelState  .= nextLevel
+
+                let lvCells = view lLevelCells nextLevel
+                    keyType = getKeyCellType
+                gTotalKeys .= levelItemCount lvCells keyType
+                
+                gDoorOpen  .= False
+                -- TODO: gTimeRemaining
+                -- TODO: gGameScene .= SceneTransition
+                -- GameState 
+                --     { _gPlayerState    :: PlayerState
+                --     , _gLevelState     :: LevelState
+                --     , _gTotalKeys      :: Int
+                --     --, _gPaused         :: Bool
+                --     , _gDoorOpen       :: Bool
+                --     , _gTimeRemaining  :: Float  -- Time limit
+                --     , _gDeltaSec       :: Float
+                --     , _gForce          :: Float
+                --     , _gGameScene      :: GameScene
+                --     }
+        Nothing -> return ()
+    return ()
 
 -- incCoin :: RWST Environment [String] GameState IO Int
 -- incCoin = do

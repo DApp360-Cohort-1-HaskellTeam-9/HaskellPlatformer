@@ -28,7 +28,7 @@ renderGame = do
     timer        <- renderTimer
     scene        <- use gGameScene
     titlePic     <- scaleTitle
-
+    
     let game = pictures $ 
             case scene of 
                     ScenePause -> 
@@ -63,19 +63,16 @@ renderGame = do
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
-    gs <- get
-    
     gDeltaSec .= sec -- might need this for other screen states
                      -- normally, the value should be 1/FPS
-    timeRemaining <- use gTimeRemaining
+    timeRemaining  <- use gTimeRemaining
     gTimeRemaining .= timeRemaining - sec
-
+    
     scene <- use gGameScene
-
     case scene of
         ScenePause -> 
-            return gs
-        _       -> do
+            return () -- update nothing
+        SceneLevel -> do
             movePlayer
             incPlayerSprite
             -- playSFX
@@ -89,10 +86,8 @@ updateGame sec = do
             door <- openDoor
             gDoorOpen .= door
             
-            nextState <- get
-            return nextState
-        
-    
+            checkDoor
+    get --  return GameState
 
 -- Helper Functions:
 renderTile :: (PureRWS m) => CellType -> m Picture
@@ -122,11 +117,10 @@ drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
 
-renderText :: (MonadRWS Environment [String] GameState m) =>
-    m [Picture]
+renderText :: (PureRWS m) => m [Picture]
 renderText = do
     env          <- ask
-    scene       <- use gGameScene
+    scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
     let continue  = view (eAssets . aTxtPause) env
     let title     = view (eAssets . aTxtTitle) env
@@ -142,7 +136,7 @@ renderText = do
                     _           -> return []
 
 --Will fix up numbers 
-scaleTitle :: (MonadRWS Environment [String] GameState m) => m [Picture]
+scaleTitle :: (PureRWS m) => m [Picture]
 scaleTitle = do
     env <- ask
     timeRemaining <- use gTimeRemaining
@@ -171,6 +165,31 @@ renderBackground = do
         Nothing -> return []
         Just x  -> return [x]
     
+
+renderDigits :: String -> [Picture] -> [Picture]
+renderDigits [] _ = []
+renderDigits (x:xs) digits 
+            | x == '-'  = [digits !! 0]                               -- keep showing 0 when timer goes negative
+            | otherwise = digits !! read [x] : renderDigits xs digits
+
+addShift :: [Picture] -> Float -> Float -> [Picture]
+addShift [] _ _ = []  -- 30 is width of digit picture
+addShift (x:xs) xPos yPos = (uncurry translate (xPos - fromIntegral (30 * length xs), yPos) x) : (addShift xs xPos yPos)
+
+renderTimer :: (PureRWS m) => m [Picture]
+renderTimer = do
+    env <- ask
+    timeRemaining <- use gTimeRemaining
+    let timerText = show . round $ timeRemaining
+    let windowWidth = view eWindowWidth env
+    let windowHeight = view eWindowHeight env
+    let tileSize     = view eTileSize env
+    let digits = view (eAssets . aTxtDigits) env
+    let timerPics = renderDigits timerText digits
+    let xPos = fromIntegral windowWidth / 2  - tileSize / 2
+    let yPos = fromIntegral windowHeight / 2 - tileSize / 2
+    let timer = addShift timerPics xPos yPos
+    return timer
 
 -- playSFX :: RWSIO ()
 -- playSFX = do

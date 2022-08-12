@@ -26,6 +26,6 @@ data LevelName
     = Level1
     | Level2
     | Level3
-    | LevelStart
     | LevelCredits
-    deriving Show
+    | LevelStart
+    deriving (Show, Bounded, Enum)

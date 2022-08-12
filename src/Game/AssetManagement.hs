@@ -3,6 +3,7 @@
 module Game.AssetManagement where
 
 import Control.Lens
+import Control.Monad.Reader
 import Control.Monad.RWS
 
 import Game.Data.Alias
@@ -10,6 +11,7 @@ import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Game.Util
 
 import Data.Maybe
 
@@ -123,16 +125,32 @@ loadTxtDigits = do
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = ["Level1", "Level2","Level3", "LevelStart", "LevelCredits"] --Placeholder for 5 backgrounds
+    let imgNames = map show [Level1 ..] -- Placeholder for all backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
 loadLevels :: IO ([String],[String])
 loadLevels = do
-    let dir = "assets/levels/"
-    let lvlNames = ["Level1", "Level2","Level3"]
-    levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
-    return $ (lvlNames ++ ["LevelStart", "LevelCredits"], levels)
+    let levelDir = "./assets/levels/"
+        lvlNames = map show [Level1 .. Level3]
+        miscLvls = map show [LevelCredits  ..]
+    levels <- mapM (readFile . (\n -> levelDir ++ n ++ ".txt")) lvlNames
+    return (lvlNames ++ miscLvls, levels)
+
+loadLevel :: LevelName -> Reader Environment LevelState
+loadLevel levelName = do
+    env <- ask
+    let levelNames  = view (eAssets . aLvlNames) env
+        levelFiles  = view (eAssets . aLvlFiles) env
+        lvlNameFile = zip levelNames levelFiles
+        levelFile   = fromMaybe "     " . (`lookup` lvlNameFile) $ show levelName
+        levelCells  = (`runReader` env) . prepareData . reverse $ lines levelFile
+    return LevelState
+        { _lLevelName  = levelName
+        , _lLevelCells = levelCells
+        }
+    
+
 
 incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
