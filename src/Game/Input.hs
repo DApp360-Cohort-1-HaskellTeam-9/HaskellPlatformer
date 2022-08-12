@@ -41,8 +41,7 @@ handleKeys e = do
                                         stopMoveRight
                                     _                                         ->
                                         return ()
-    newState <- get
-    return newState
+    get -- return GameState
 
 pauseGame :: (PureRWS m) => m ()
 pauseGame = do

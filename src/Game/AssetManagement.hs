@@ -31,7 +31,7 @@ initAssets = do
     playerImgs   <- loadPlayers
     baseImgs     <- loadBaseTiles
     lvlData      <- loadLevels
-
+    
     return Assets
         { _aPlayer     = playerImgs
         , _aKey        = (keyImg, 'k')
