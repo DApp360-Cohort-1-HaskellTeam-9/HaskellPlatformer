@@ -26,15 +26,38 @@ renderGame = do
     text         <- renderText
     background   <- renderBackground
     timer        <- renderTimer
+    scene        <- use (gGameScene)
 
-    --Probably need to replace with renderLevel function?
-    return . pictures $ 
-        background ++ 
-        uncurry translate playerPos playerSprite :
-        tiles ++ 
-        text ++
-        timer
-    
+    let game = pictures $ 
+            case scene of 
+                    ScenePause -> 
+                        background ++ 
+                        uncurry translate playerPos playerSprite : 
+                        tiles ++ 
+                        text
+                    SceneStart      ->
+                        background ++ 
+                        text
+                    SceneCredits    ->
+                        background ++ 
+                        text
+                    SceneLevel      ->
+                        background ++ 
+                        uncurry translate playerPos playerSprite :
+                        tiles ++ 
+                        text ++
+                        timer        
+                    SceneWin        ->
+                        tiles ++ 
+                        background ++ 
+                        text
+                    SceneLose       ->
+                        tiles ++ 
+                        background ++ 
+                        text
+                    SceneTransition ->
+                        [] --Not sure
+    return game
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
@@ -44,12 +67,12 @@ updateGame sec = do
                      -- normally, the value should be 1/FPS
     timeRemaining <- use gTimeRemaining
     gTimeRemaining .= timeRemaining - sec
-    paused <- use gPaused
+    scene <- use gGameScene
     
-    case paused of
-        True -> 
+    case scene of
+        ScenePause -> 
             return gs
-        False -> do
+        _       -> do
             movePlayer
             incPlayerSprite
             --playSFX
@@ -66,7 +89,6 @@ updateGame sec = do
             nextState <- get
             return nextState
         
-    
 
 -- Helper Functions:
 renderTile :: (PureRWS m) => CellType -> m Picture
@@ -100,27 +122,27 @@ renderText :: (MonadRWS Environment [String] GameState m) =>
     m [Picture]
 renderText = do
     env          <- ask
-    paused       <- use gPaused
+    scene       <- use gGameScene
     level        <- use (gLevelState . lLevelName)
     let continue  = view (eSprites . aTxtPause) env
     let title     = view (eSprites . aTxtTitle) env
     let enter     = view (eSprites . aTxtEnter) env
     let startText = [uncurry translate (0,200) title, uncurry translate (0,-200) enter] 
 
-    case paused of
-        True  -> case level of
+    case scene of
+        ScenePause  -> case level of
                     LevelStart  -> return startText --Add credits screen?
                     _           -> return [continue]
-        False -> case level of
+        _           -> case level of
                     LevelStart  -> return startText 
                     _           -> return []
-
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
     env      <- ask
-    level   <- use (gLevelState . lLevelName)
-
+    level    <- use (gLevelState . lLevelName)
+    scene    <- use (gGameScene)   
+    
     let lvlList = view (eSprites . aLvlNames) env
     let bgImgs = view (eSprites . aBgImg) env
     let zipLvls = zip lvlList bgImgs
