@@ -166,18 +166,22 @@ scaleTitle = do
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
-    env      <- ask
-    level    <- use (gLevelState . lLevelName)
-    scene    <- use (gGameScene)   
+    env   <- ask
+    level <- use (gLevelState . lLevelName)
+    scene <- use (gGameScene)   
     
-    let lvlList = view (eAssets . aLvlNames) env
-    let bgImgs = view (eAssets . aBgImg) env
-    let zipLvls = zip lvlList bgImgs
-    let imgToUse = lookup (show level) zipLvls
-
+    let lvlList  = view (eAssets . aLvlNames) env
+        bgImgs   = view (eAssets . aBgImg   ) env
+        zipLvls  = zip lvlList bgImgs
+        imgToUse = lookup (show level) zipLvls
+    
+    -- calculate paralax
+    (x, y) <- use (gPlayerState . pPosition)
+    -- let w = fromIntegral $ view eWindowWidth  env
+    --     h = fromIntegral $ view eWindowHeight env
     case imgToUse of
+        Just bg -> return [translate (-x/5) (-y/25) $ bg]
         Nothing -> return []
-        Just x  -> return [x]
     
 
 renderDigits :: String -> [Picture] -> [Picture]
