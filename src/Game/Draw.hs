@@ -47,7 +47,7 @@ updateGame sec = do
         False -> do
             movePlayer
             incPlayerSprite
-            playSFX
+            -- playSFX
             
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
@@ -117,26 +117,26 @@ renderBackground = do
         Just x  -> return [x]
     
 
-playSFX :: RWSIO ()
-playSFX = do
-    player <- use (gPlayerState . pPosition)
-    let coin = getCoinCellType
-        key  = getKeyCellType
-        door = getDoorCellType
+-- playSFX :: RWSIO ()
+-- playSFX = do
+--     player <- use (gPlayerState . pPosition)
+--     let coin = getCoinCellType
+--         key  = getKeyCellType
+--         door = getDoorCellType
     
-    hitCoin <- collideWith coin player
-    case hitCoin of
-        Just cn -> playSound Coin
-        Nothing -> return ()
+--     hitCoin <- collideWith coin player
+--     case hitCoin of
+--         Just cn -> playSound Coin
+--         Nothing -> return ()
     
-    hitKey <- collideWith key player
-    case hitKey of
-        Just ky -> playSound Key
-        Nothing -> return ()
+--     hitKey <- collideWith key player
+--     case hitKey of
+--         Just ky -> playSound Key
+--         Nothing -> return ()
     
-    hitDoor <- collideWith door player
-    isDoorOpen <- use gDoorOpen
-    when isDoorOpen $ case hitDoor of
-        Just cn -> playSound DoorClose
-        Nothing -> return ()
+--     hitDoor <- collideWith door player
+--     isDoorOpen <- use gDoorOpen
+--     when isDoorOpen $ case hitDoor of
+--         Just cn -> playSound DoorClose
+--         Nothing -> return ()
     

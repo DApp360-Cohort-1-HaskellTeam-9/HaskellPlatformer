@@ -15,7 +15,7 @@ import Data.Maybe
 
 import Graphics.Gloss
 
-import Sound.ALUT as Sound
+-- import Sound.ALUT as Sound
 
 --loadImgs :: RWST Environment [String] GameState IO [Picture]
 
@@ -43,35 +43,35 @@ initAssets = do
         }
     
 
-initSound :: IO SoundInfo
-initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
-    (Just device)  <- openDevice Nothing
-    (Just context) <- createContext device []
-    currentContext $= Just context
+-- initSound :: IO SoundInfo
+-- initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+--     (Just device)  <- openDevice Nothing
+--     (Just context) <- createContext device []
+--     currentContext $= Just context
     
-    let -- Credits to: dixonary / hake
-        -- Load our sound file enum into an array.
-        soundFiles :: [SoundType]
-        soundFiles = [minBound..maxBound]
+--     let -- Credits to: dixonary / hake
+--         -- Load our sound file enum into an array.
+--         soundFiles :: [SoundType]
+--         soundFiles = [minBound..maxBound]
         
-        soundPath :: SoundType -> String
-        soundPath Coin      = "./assets/sounds/wizzle.wav"
-        soundPath Key       = "./assets/sounds/pellet.wav"
-        soundPath DoorOpen  = "./assets/sounds/file2.au"
-        soundPath DoorClose = "./assets/sounds/blip.wav"
+--         soundPath :: SoundType -> String
+--         soundPath Coin      = "./assets/sounds/wizzle.wav"
+--         soundPath Key       = "./assets/sounds/pellet.wav"
+--         soundPath DoorOpen  = "./assets/sounds/file2.au"
+--         soundPath DoorClose = "./assets/sounds/blip.wav"
         
-        -- Generate buffer queue for each sound.
-        loadBuffer sf = do
-            buf <- createBuffer $ File $ soundPath sf
-            [src] <- genObjectNames 1
-            queueBuffers src [buf]
-            return (sf, src)
+--         -- Generate buffer queue for each sound.
+--         loadBuffer sf = do
+--             buf <- createBuffer $ File $ soundPath sf
+--             [src] <- genObjectNames 1
+--             queueBuffers src [buf]
+--             return (sf, src)
     
-    -- Run loadBuffer for each soundFile.
-    sounds <- mapM loadBuffer soundFiles
+--     -- Run loadBuffer for each soundFile.
+--     sounds <- mapM loadBuffer soundFiles
     
-    -- Construct our stateful SoundInfo.
-    return $ SoundInfo device context sounds
+--     -- Construct our stateful SoundInfo.
+--     return $ SoundInfo device context sounds
 
 rootDir :: String
 rootDir = "./assets/graphics/"
@@ -161,14 +161,14 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
-playSound :: SoundType -> RWSIO ()
-playSound s = do
-    env <- ask
-    let soundContext = view (eSounds . sContext) env
-    let soundSources = view (eSounds . sSources) env
-    withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
-        currentContext $= Just soundContext
-        Sound.play . maybeToList $ lookup s soundSources
+-- playSound :: SoundType -> RWSIO ()
+-- playSound s = do
+--     env <- ask
+--     let soundContext = view (eSounds . sContext) env
+--     let soundSources = view (eSounds . sSources) env
+--     withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+--         currentContext $= Just soundContext
+--         Sound.play . maybeToList $ lookup s soundSources
     
 
 getCollidables :: [CellType] -- this is a list of collidables cell types

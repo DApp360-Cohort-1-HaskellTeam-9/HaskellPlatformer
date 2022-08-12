@@ -61,7 +61,7 @@ openDoor = do
     if collectedKeys == totalKeys
         then do
             isDoorOpen <- use gDoorOpen
-            unless isDoorOpen $ playSound DoorOpen
+            -- unless isDoorOpen $ playSound DoorOpen
             return True
         else do
             return False
