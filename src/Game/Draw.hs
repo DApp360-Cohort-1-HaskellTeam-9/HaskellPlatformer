@@ -16,52 +16,59 @@ import Graphics.Gloss
 
 renderGame :: RWSIO Picture
 renderGame = do
-    env          <- ask
+    -- level cell/tiles pictures
     level        <- use (gLevelState . lLevelCells)
     layerBack    <- drawTiles "*tb"
     layerFront   <- drawTiles "^kc"
-    -- tiles        <- mapM drawTile level
-    playerPos    <- use (gPlayerState . pPosition)
+    
+    -- player picture
+    (x, y)       <- use (gPlayerState . pPosition)
     playerSprite <- getPlayerSprite
-    text         <- renderText
+    let playerPos = (x, y - 4) -- offset
+        playerPic = [uncurry translate playerPos playerSprite]
+    
+    -- bg & text pictures
     background   <- renderBackground
+    text         <- renderText
     timer        <- renderTimer
-    scene        <- use gGameScene
+    
+    -- title picture
     titlePic     <- scaleTitle
     
-    let game = pictures $ 
-            case scene of 
-                    ScenePause -> 
-                        background ++
-                        layerBack  ++
-                        uncurry translate playerPos playerSprite : 
-                        layerFront ++
-                        text
-                    SceneStart      ->
-                        background ++ 
-                        titlePic   ++
-                        text
-                    SceneCredits    ->
-                        background ++ 
-                        text
-                    SceneLevel      ->
-                        background ++
-                        layerBack  ++
-                        uncurry translate playerPos playerSprite :
-                        layerFront ++
-                        text ++
-                        timer        
-                    SceneWin        ->
-                        background ++ 
-                        -- tiles ++
-                        text
-                    SceneLose       ->
-                        background ++ 
-                        -- tiles ++
-                        text
-                    SceneTransition ->
-                        [] --Not sure
-    return game
+    scene <- use gGameScene
+    return . pictures $ case scene of 
+        ScenePause     ->
+            background ++
+            layerBack  ++
+            playerPic  ++ 
+            layerFront ++
+            text
+        SceneStart     ->
+            background ++ 
+            titlePic   ++
+            text
+        SceneCredits   ->
+            background ++ 
+            text
+        SceneLevel     ->
+            background ++
+            layerBack  ++
+            playerPic  ++
+            layerFront ++
+            text       ++
+            timer        
+        SceneWin       ->
+            background ++ 
+            -- tiles ++
+            text
+        SceneLose      ->
+            background ++ 
+            -- tiles ++
+            text
+        SceneTransition ->
+            [] --Not sure
+        
+    
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
