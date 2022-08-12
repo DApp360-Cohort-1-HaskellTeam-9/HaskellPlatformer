@@ -26,7 +26,8 @@ renderGame = do
     text         <- renderText
     background   <- renderBackground
     timer        <- renderTimer
-    scene        <- use (gGameScene)
+    scene        <- use gGameScene
+    titlePic     <- scaleTitle
 
     let game = pictures $ 
             case scene of 
@@ -37,6 +38,7 @@ renderGame = do
                         text
                     SceneStart      ->
                         background ++ 
+                        titlePic ++
                         text
                     SceneCredits    ->
                         background ++ 
@@ -48,12 +50,12 @@ renderGame = do
                         text ++
                         timer        
                     SceneWin        ->
-                        tiles ++ 
                         background ++ 
+                        tiles ++ 
                         text
                     SceneLose       ->
-                        tiles ++ 
                         background ++ 
+                        tiles ++ 
                         text
                     SceneTransition ->
                         [] --Not sure
@@ -67,8 +69,9 @@ updateGame sec = do
                      -- normally, the value should be 1/FPS
     timeRemaining <- use gTimeRemaining
     gTimeRemaining .= timeRemaining - sec
+
     scene <- use gGameScene
-    
+
     case scene of
         ScenePause -> 
             return gs
@@ -94,11 +97,11 @@ updateGame sec = do
 renderTile :: (PureRWS m) => CellType -> m Picture
 renderTile cellType = do
     env <- ask
-    let baseImg  = view (eSprites . aBase ) env
-        grassImg = view (eSprites . aGrass) env
-        coinImg  = head $ view (eSprites . aCoin ) env
-        keyImg   = view (eSprites . aKey  ) env
-        doorImgs = view (eSprites . aDoor) env
+    let baseImg  = view (eAssets . aBase ) env
+        grassImg = view (eAssets . aGrass) env
+        coinImg  = head $ view (eAssets . aCoin ) env
+        keyImg   = view (eAssets . aKey  ) env
+        doorImgs = view (eAssets . aDoor) env
 
     isDoorOpen <- use gDoorOpen
 
@@ -124,10 +127,10 @@ renderText = do
     env          <- ask
     scene       <- use gGameScene
     level        <- use (gLevelState . lLevelName)
-    let continue  = view (eSprites . aTxtPause) env
-    let title     = view (eSprites . aTxtTitle) env
-    let enter     = view (eSprites . aTxtEnter) env
-    let startText = [uncurry translate (0,200) title, uncurry translate (0,-200) enter] 
+    let continue  = view (eAssets . aTxtPause) env
+    let title     = view (eAssets . aTxtTitle) env
+    let enter     = view (eAssets . aTxtEnter) env
+    let startText = [uncurry translate (0,-200) enter] 
 
     case scene of
         ScenePause  -> case level of
@@ -137,14 +140,29 @@ renderText = do
                     LevelStart  -> return startText 
                     _           -> return []
 
+--Will fix up numbers 
+scaleTitle :: (MonadRWS Environment [String] GameState m) => m [Picture]
+scaleTitle = do
+    env <- ask
+    timeRemaining <- use gTimeRemaining
+    let delta = (120 - timeRemaining) * 2
+    let fps = view (eFPS) env
+    let title  = view (eAssets . aTxtTitle) env
+    let newDelta =  if delta >= 10
+                    then 10
+                    else delta
+    let scaleXY = newDelta / 10
+    let pic = scale scaleXY scaleXY $ uncurry translate (0,100) title
+    return [pic]
+
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
     env      <- ask
     level    <- use (gLevelState . lLevelName)
     scene    <- use (gGameScene)   
     
-    let lvlList = view (eSprites . aLvlNames) env
-    let bgImgs = view (eSprites . aBgImg) env
+    let lvlList = view (eAssets . aLvlNames) env
+    let bgImgs = view (eAssets . aBgImg) env
     let zipLvls = zip lvlList bgImgs
     let imgToUse = lookup (show level) zipLvls
 
@@ -170,7 +188,7 @@ renderTimer = do
     let windowWidth = view eWindowWidth env
     let windowHeight = view eWindowHeight env
     let tileSize     = view eTileSize env
-    let digits = view (eSprites . aTxtDigits) env
+    let digits = view (eAssets . aTxtDigits) env
     let timerPics = renderDigits timerText digits
     let xPos = fromIntegral windowWidth / 2  - tileSize / 2
     let yPos = fromIntegral windowHeight / 2 - tileSize / 2

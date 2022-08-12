@@ -38,7 +38,7 @@ data GameState
     { _gPlayerState    :: PlayerState
     , _gLevelState     :: LevelState
     , _gTotalKeys      :: Int
-    , _gPaused         :: Bool
+    --, _gPaused         :: Bool
     , _gDoorOpen       :: Bool
     , _gTimeRemaining  :: Float  -- Time limit
     , _gDeltaSec       :: Float
