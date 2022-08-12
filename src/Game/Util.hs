@@ -1,39 +1,45 @@
 module Game.Util where
 
--- import Control.Concurrent
--- import Control.Concurrent.STM
--- import Control.Exception
--- import Control.Monad
+import Control.Lens
+import Control.Monad.Reader
 
--- type Work        = IO ()
--- type SendWork    = Work -> STM ()
--- type ThreadCount = Int
+import Game.Data.Environment
+import Game.Data.State
 
--- newThreads :: ThreadCount -> IO (SendWork, IO ())
--- newThreads t
---     | t  <=  0  = error "Invalid number of thread"
---     | otherwise = do
---         workChan <- atomically newTChan
---         runCount <- atomically . newTVar $ t
---         let stop  = atomically $ do
---                 running <- readTVar runCount
---                 writeTVar runCount . pred $ running
---             die e = do
---                 id <- myThreadId
---                 print $ "Thread " ++ show id ++ " died with exception " ++ show (e :: ErrorCall)
---                 stop
---             work  = do
---                 mJob <- atomically (readTChan workChan)
---                 case mJob of
---                     Just jb -> do
---                         catch jb die
---                         work
---                     Nothing -> stop
---         replicateM_ t (forkIO work)
---         let stopCommand = do
---                 atomically . replicateM_ t . writeTChan workChan $ Nothing
---                 atomically $ do
---                     running <- readTVar runCount
---                     when (running > 0) retry
---         return (writeTChan workChan . Just, stopCommand)
+import Graphics.Gloss
+
+-- | Create a GameLevel from a text file level representation
+prepareData :: [String] -> Reader Environment GameLevel
+prepareData [] = return []
+prepareData (s:ss) = do
+    env <- ask 
+    return $ concat [runReader (makeRow s rowNumber) env, runReader (prepareData ss) env]
+        where rowNumber = length ss    --- ^ Row number is counted from bottom
     
+
+-- | Parse a row in a text level representation 
+makeRow :: String -> Int -> Reader Environment GameLevel
+makeRow [] _ = return []
+makeRow (c:cs) rowNumber
+    | c == '.'  = makeRow cs rowNumber  --- ^ Skip empty cell
+    | otherwise = do
+        env <- ask
+        let windowWidth  = view eWindowWidth env
+        let windowHeight = view eWindowHeight env
+        let tileSize     = view eTileSize env
+        let colNumber = length cs    --- ^ Column number is counted from right to left
+        let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
+        let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
+        return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
+    
+
+levelItemCount :: GameLevel -> [CellType] -> Int
+levelItemCount level items =
+    length $ filter ((`elem` items) . snd) level
+
+isHit :: Point -> Point -> Float -> Bool
+isHit (x1, y1) (x2, y2) tileSize =
+    x1            < x2 + tileSize &&
+    x1 + tileSize > x2            &&
+    y1            < y2 + tileSize &&
+    y1 + tileSize > y2

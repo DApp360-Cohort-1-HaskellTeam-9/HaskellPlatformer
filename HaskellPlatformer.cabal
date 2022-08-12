@@ -54,6 +54,7 @@ executable HaskellPlatformer
     -- Modules included in this executable, other than Main.
     other-modules:    Game.Action
                  ,    Game.AssetManagement
+                 ,    Game.Data.Alias
                  ,    Game.Data.Asset
                  ,    Game.Data.Enum
                  ,    Game.Data.Environment
@@ -73,9 +74,7 @@ executable HaskellPlatformer
                  ,    gloss
                  ,    lens
                  ,    mtl
-                -- ,    ALUT
-
-
+    --           ,    ALUT
 
     -- Directories containing source files.
     hs-source-dirs:   src

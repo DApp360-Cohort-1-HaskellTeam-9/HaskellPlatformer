@@ -1,44 +1,32 @@
 module Game.Init where
 
-import Control.Lens
 import Control.Monad.Reader
 
 import Game.AssetManagement
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
-import Game.Data.Asset
 
 initEnv :: [String] -> IO Environment
 initEnv args = do
     assets <- initAssets
-    --sounds <- initSound
+    -- sounds <- initSound
     return Environment
         { _eTileSize = 32
         , _eWindowWidth = 1024
         , _eWindowHeight = 768
         , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
                            -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
-        --, _eSounds  = sounds
         , _eAssets = assets
+        -- , _eSounds  = sounds
         }
 
 initState :: [String] -> ReaderT Environment IO GameState
 initState args = do
     env <- ask
-{-  
-
-    -- TODO: Create a background thread, play bgm instead
-    withProgNameAndArgs runALUT $ \_progName _args -> do
-        introBuffer <- createBuffer . File $ "./assets/sounds/file2.au"
-        introSource <- genObjectName
-        buffer introSource $= Just introBuffer
-        play [introSource]
-        sleep 1
--}
     return GameState
         { _gPlayerState   = initPlayer
-        , _gLevelState    = runReader (initLevel) env
+        , _gLevelState    = runReader initLevel env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
         --, _gPaused        = False
@@ -62,38 +50,4 @@ initPlayer = PlayerState
     }
 
 initLevel :: Reader Environment LevelState
-initLevel = do
-    env <- ask
-    let level1 = (view (eAssets . aLvlFiles) env) !! 0
-    let levelCells = runReader (prepareData . reverse . lines $ level1) env
-
-    return 
-        LevelState
-        { _lLevelName    = Level1
-        , _lLevelCells   = levelCells
-        } 
-
--- | Parse a row in a text level representation 
-makeRow :: String -> Int -> Reader Environment GameLevel
-makeRow [] _ = return []
-makeRow (c:cs) rowNumber
-    | c == '.'  = makeRow cs rowNumber  --- ^ Skip empty cell
-    | otherwise = do
-        env <- ask
-        let windowWidth  = view eWindowWidth env
-        let windowHeight = view eWindowHeight env
-        let tileSize     = view eTileSize env
-        let colNumber = length cs    --- ^ Column number is counted from right to left
-        let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
-        let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
-        return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
-    
-
--- | Create a GameLevel from a text file level representation
-prepareData :: [String] -> Reader Environment GameLevel
-prepareData [] = return []
-prepareData (s:ss) = do
-    env <- ask 
-    return $ concat [runReader (makeRow s rowNumber) env, runReader (prepareData ss) env]
-        where rowNumber = length ss    --- ^ Row number is counted from bottom
-    
+initLevel = loadLevel minBound

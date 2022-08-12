@@ -3,6 +3,7 @@
 module Game.AssetManagement where
 
 import Control.Lens
+import Control.Monad.Reader
 import Control.Monad.RWS
 
 import Game.Data.Alias
@@ -10,12 +11,13 @@ import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Game.Util
 
 import Data.Maybe
 
 import Graphics.Gloss
 
---import Sound.ALUT as Sound
+-- import Sound.ALUT as Sound
 
 --loadImgs :: RWST Environment [String] GameState IO [Picture]
 
@@ -49,37 +51,36 @@ initAssets = do
         , _aLvlFiles   = snd lvlData
         }
     
-{-
-initSound :: IO SoundInfo
-initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
-    (Just device)  <- openDevice Nothing
-    (Just context) <- createContext device []
-    currentContext $= Just context
+
+-- initSound :: IO SoundInfo
+-- initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+--     (Just device)  <- openDevice Nothing
+--     (Just context) <- createContext device []
+--     currentContext $= Just context
     
-    let -- Credits to: dixonary / hake
-        -- Load our sound file enum into an array.
-        soundFiles :: [SoundType]
-        soundFiles = [minBound..maxBound]
+--     let -- Credits to: dixonary / hake
+--         -- Load our sound file enum into an array.
+--         soundFiles :: [SoundType]
+--         soundFiles = [minBound..maxBound]
         
-        soundPath :: SoundType -> String
-        soundPath Coin      = "./assets/sounds/wizzle.wav"
-        soundPath Key       = "./assets/sounds/pellet.wav"
-        soundPath DoorOpen  = "./assets/sounds/file2.au"
-        soundPath DoorClose = "./assets/sounds/blip.wav"
+--         soundPath :: SoundType -> String
+--         soundPath Coin      = "./assets/sounds/wizzle.wav"
+--         soundPath Key       = "./assets/sounds/pellet.wav"
+--         soundPath DoorOpen  = "./assets/sounds/file2.au"
+--         soundPath DoorClose = "./assets/sounds/blip.wav"
         
-        -- Generate buffer queue for each sound.
-        loadBuffer sf = do
-            buf <- createBuffer $ File $ soundPath sf
-            [src] <- genObjectNames 1
-            queueBuffers src [buf]
-            return (sf, src)
+--         -- Generate buffer queue for each sound.
+--         loadBuffer sf = do
+--             buf <- createBuffer $ File $ soundPath sf
+--             [src] <- genObjectNames 1
+--             queueBuffers src [buf]
+--             return (sf, src)
     
-    -- Run loadBuffer for each soundFile.
-    sounds <- mapM loadBuffer soundFiles
+--     -- Run loadBuffer for each soundFile.
+--     sounds <- mapM loadBuffer soundFiles
     
-    -- Construct our stateful SoundInfo.
-    return $ SoundInfo device context sounds
--}
+--     -- Construct our stateful SoundInfo.
+--     return $ SoundInfo device context sounds
 
 rootDir :: String
 rootDir = "./assets/graphics/"
@@ -124,16 +125,32 @@ loadTxtDigits = do
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = ["Level1", "Level2","Level3", "LevelStart", "LevelCredits"] --Placeholder for 5 backgrounds
+    let imgNames = map show [Level1 ..] -- Placeholder for all backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
 loadLevels :: IO ([String],[String])
 loadLevels = do
-    let dir = "assets/levels/"
-    let lvlNames = ["Level1", "Level2","Level3"]
-    levels <- mapM (readFile . (\n -> dir ++ n ++ ".txt")) lvlNames
-    return $ (lvlNames ++ ["LevelStart", "LevelCredits"], levels)
+    let levelDir = "./assets/levels/"
+        lvlNames = map show [Level1 .. Level3]
+        miscLvls = map show [LevelCredits  ..]
+    levels <- mapM (readFile . (\n -> levelDir ++ n ++ ".txt")) lvlNames
+    return (lvlNames ++ miscLvls, levels)
+
+loadLevel :: LevelName -> Reader Environment LevelState
+loadLevel levelName = do
+    env <- ask
+    let levelNames  = view (eAssets . aLvlNames) env
+        levelFiles  = view (eAssets . aLvlFiles) env
+        lvlNameFile = zip levelNames levelFiles
+        levelFile   = fromMaybe "     " . (`lookup` lvlNameFile) $ show levelName
+        levelCells  = (`runReader` env) . prepareData . reverse $ lines levelFile
+    return LevelState
+        { _lLevelName  = levelName
+        , _lLevelCells = levelCells
+        }
+    
+
 
 incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do
@@ -177,16 +194,15 @@ getDoorSprite = do
                                 (_,_)             -> (Nothing, Nothing)   
     return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
 
-{-
-playSound :: SoundType -> RWSIO ()
-playSound s = do
-    env <- ask
-    let soundContext = view (eSounds . sContext) env
-    let soundSources = view (eSounds . sSources) env
-    withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
-        currentContext $= Just soundContext
-        Sound.play . maybeToList $ lookup s soundSources
--}
+-- playSound :: SoundType -> RWSIO ()
+-- playSound s = do
+--     env <- ask
+--     let soundContext = view (eSounds . sContext) env
+--     let soundSources = view (eSounds . sSources) env
+--     withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+--         currentContext $= Just soundContext
+--         Sound.play . maybeToList $ lookup s soundSources
+    
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)

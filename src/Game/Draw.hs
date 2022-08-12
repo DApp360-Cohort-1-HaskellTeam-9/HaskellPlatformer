@@ -28,7 +28,7 @@ renderGame = do
     timer        <- renderTimer
     scene        <- use gGameScene
     titlePic     <- scaleTitle
-
+    
     let game = pictures $ 
             case scene of 
                     ScenePause -> 
@@ -63,22 +63,19 @@ renderGame = do
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
-    gs <- get
-    
     gDeltaSec .= sec -- might need this for other screen states
                      -- normally, the value should be 1/FPS
-    timeRemaining <- use gTimeRemaining
+    timeRemaining  <- use gTimeRemaining
     gTimeRemaining .= timeRemaining - sec
-
+    
     scene <- use gGameScene
-
     case scene of
         ScenePause -> 
-            return gs
-        _       -> do
+            return () -- update nothing
+        SceneLevel -> do
             movePlayer
             incPlayerSprite
-            --playSFX
+            -- playSFX
             
             keys <- incKeys
             gPlayerState . pCollectedKeys .= keys
@@ -89,9 +86,8 @@ updateGame sec = do
             door <- openDoor
             gDoorOpen .= door
             
-            nextState <- get
-            return nextState
-        
+            checkDoor
+    get --  return GameState
 
 -- Helper Functions:
 renderTile :: (PureRWS m) => CellType -> m Picture
@@ -121,11 +117,10 @@ drawTile (pos, celltYpe) = do
     tile <- renderTile celltYpe
     return . uncurry translate pos $ tile
 
-renderText :: (MonadRWS Environment [String] GameState m) =>
-    m [Picture]
+renderText :: (PureRWS m) => m [Picture]
 renderText = do
     env          <- ask
-    scene       <- use gGameScene
+    scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
     let continue  = view (eAssets . aTxtPause) env
     let title     = view (eAssets . aTxtTitle) env
@@ -141,7 +136,7 @@ renderText = do
                     _           -> return []
 
 --Will fix up numbers 
-scaleTitle :: (MonadRWS Environment [String] GameState m) => m [Picture]
+scaleTitle :: (PureRWS m) => m [Picture]
 scaleTitle = do
     env <- ask
     timeRemaining <- use gTimeRemaining
@@ -169,6 +164,7 @@ renderBackground = do
     case imgToUse of
         Nothing -> return []
         Just x  -> return [x]
+    
 
 renderDigits :: String -> [Picture] -> [Picture]
 renderDigits [] _ = []
@@ -195,27 +191,26 @@ renderTimer = do
     let timer = addShift timerPics xPos yPos
     return timer
 
-{-
-playSFX :: RWSIO ()
-playSFX = do
-    player <- use (gPlayerState . pPosition)
-    let coin = getCoinCellType
-        key  = getKeyCellType
-        door = getDoorCellType
+-- playSFX :: RWSIO ()
+-- playSFX = do
+--     player <- use (gPlayerState . pPosition)
+--     let coin = getCoinCellType
+--         key  = getKeyCellType
+--         door = getDoorCellType
     
-    hitCoin <- collideWith coin player
-    case hitCoin of
-        Just cn -> playSound Coin
-        Nothing -> return ()
+--     hitCoin <- collideWith coin player
+--     case hitCoin of
+--         Just cn -> playSound Coin
+--         Nothing -> return ()
     
-    hitKey <- collideWith key player
-    case hitKey of
-        Just ky -> playSound Key
-        Nothing -> return ()
+--     hitKey <- collideWith key player
+--     case hitKey of
+--         Just ky -> playSound Key
+--         Nothing -> return ()
     
-    hitDoor <- collideWith door player
-    isDoorOpen <- use gDoorOpen
-    when isDoorOpen $ case hitDoor of
-        Just cn -> playSound DoorClose
-        Nothing -> return ()
--}
+--     hitDoor <- collideWith door player
+--     isDoorOpen <- use gDoorOpen
+--     when isDoorOpen $ case hitDoor of
+--         Just cn -> playSound DoorClose
+--         Nothing -> return ()
+    
