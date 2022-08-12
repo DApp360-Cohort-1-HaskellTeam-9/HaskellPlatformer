@@ -33,7 +33,7 @@ collideWith :: (PureRWS m) => [CellType] -> Point -> m (Maybe Cell)
 collideWith colliders point = do
     env <- ask
     let tileSize = view eTileSize env
-
+    
     level <- use (gLevelState . lLevelCells)
     return $ foldr (\ (cell, cellType) next ->
         if cellType `elem` colliders && isHit point cell tileSize

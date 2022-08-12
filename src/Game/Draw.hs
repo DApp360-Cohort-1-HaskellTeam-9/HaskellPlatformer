@@ -18,7 +18,9 @@ renderGame :: RWSIO Picture
 renderGame = do
     env          <- ask
     level        <- use (gLevelState . lLevelCells)
-    tiles        <- mapM drawTile level
+    layerBack    <- drawTiles "*tb"
+    layerFront   <- drawTiles "^kc"
+    -- tiles        <- mapM drawTile level
     playerPos    <- use (gPlayerState . pPosition)
     playerSprite <- getPlayerSprite
     text         <- renderText
@@ -30,30 +32,32 @@ renderGame = do
     let game = pictures $ 
             case scene of 
                     ScenePause -> 
-                        background ++ 
+                        background ++
+                        layerBack  ++
                         uncurry translate playerPos playerSprite : 
-                        tiles ++ 
+                        layerFront ++
                         text
                     SceneStart      ->
                         background ++ 
-                        titlePic ++
+                        titlePic   ++
                         text
                     SceneCredits    ->
                         background ++ 
                         text
                     SceneLevel      ->
-                        background ++ 
+                        background ++
+                        layerBack  ++
                         uncurry translate playerPos playerSprite :
-                        tiles ++ 
+                        layerFront ++
                         text ++
                         timer        
                     SceneWin        ->
                         background ++ 
-                        tiles ++ 
+                        -- tiles ++
                         text
                     SceneLose       ->
                         background ++ 
-                        tiles ++ 
+                        -- tiles ++
                         text
                     SceneTransition ->
                         [] --Not sure
@@ -95,14 +99,13 @@ renderTile cellType = do
     env <- ask
     let baseImg  = view (eAssets . aBase ) env
         grassImg = view (eAssets . aGrass) env
-        coinImg  = head $ view (eAssets . aCoin ) env
+        coinImg  = head $ view (eAssets . aCoin) env
         keyImg   = view (eAssets . aKey  ) env
-        doorImgs = view (eAssets . aDoor) env
-
+        doorImgs = view (eAssets . aDoor ) env
+    
     isDoorOpen <- use gDoorOpen
-
-    doorTup <- getDoorSprite
-
+    doorTup    <- getDoorSprite
+    
     return $ case cellType of
         '*' -> baseImg 
         '^' -> grassImg
@@ -111,11 +114,22 @@ renderTile cellType = do
         't' -> fst doorTup
         'b' -> snd doorTup
         _   -> circle 0 -- should never reach here
+    
 
-drawTile :: (PureRWS m) => Cell -> m Picture
-drawTile (pos, celltYpe) = do
-    tile <- renderTile celltYpe
-    return . uncurry translate pos $ tile
+drawTiles :: (PureRWS m) => [CellType] -> m [Picture]
+drawTiles cellTypes = do
+    level <- use (gLevelState . lLevelCells)
+    let  tiles = filter ((`elem` cellTypes) . snd) level
+    forM tiles (\ (pos, cell) -> do
+        tile  <- renderTile cell
+        return . uncurry translate pos $ tile)
+    
+
+-- Deprecated
+-- drawTile :: (PureRWS m) => Cell -> m Picture
+-- drawTile (pos, cellType) = do
+--     tile <- renderTile cellType
+--     return . uncurry translate pos $ tile
 
 renderText :: (PureRWS m) => m [Picture]
 renderText = do
