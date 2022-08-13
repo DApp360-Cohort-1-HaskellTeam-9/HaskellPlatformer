@@ -66,14 +66,25 @@ renderGame = do
             background ++ 
             text
         SceneLevel     ->
-            background ++
-            layerBack  ++
-            playerPic  ++
-            layerFront ++
-            lvlTitle   ++
-            lvlSub     ++
-            text       ++
-            timer        
+            if transition < 0
+                then
+                    background ++
+                    lvlTitle   ++
+                    lvlSub     ++
+                    layerBack  ++
+                    playerPic  ++
+                    layerFront ++
+                    text       ++
+                    timer
+                else
+                    background ++
+                    layerBack  ++
+                    playerPic  ++
+                    layerFront ++
+                    lvlTitle   ++
+                    lvlSub     ++
+                    text       ++
+                    timer
         SceneWin       ->
             background ++ 
             -- tiles ++
