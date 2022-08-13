@@ -31,21 +31,25 @@ initAssets = do
     playerImgs   <- loadPlayers
     baseImgs     <- loadBaseTiles
     lvlData      <- loadLevels
+    lvlTitles    <- loadLevelTransition ""
+    lvlSubtitles <- loadLevelTransition "subtitle"
     
     return Assets
-        { _aPlayer     = playerImgs
-        , _aKey        = (keyImg, 'k')
-        , _aDoor       = doorImgs
-        , _aBase       = last $ baseImgs -- TODO: Is there a better function?
-        , _aGrass      = head $ baseImgs -- TODO: Is there a better function?
-        , _aCoin       = coinImgs
-        , _aBgImg      = bgImgs
-        , _aTxtPause   = txtPause
-        , _aTxtEnter   = txtEnter
-        , _aTxtTitle   = txtTitle
-        , _aTxtDigits  = txtDigits
-        , _aLvlNames   = fst lvlData
-        , _aLvlFiles   = snd lvlData
+        { _aPlayer       = playerImgs
+        , _aKey          = (keyImg, 'k')
+        , _aDoor         = doorImgs
+        , _aBase         = last $ baseImgs -- TODO: Is there a better function?
+        , _aGrass        = head $ baseImgs -- TODO: Is there a better function?
+        , _aCoin         = coinImgs
+        , _aBgImg        = bgImgs
+        , _aTxtPause     = txtPause
+        , _aTxtEnter     = txtEnter
+        , _aTxtTitle     = txtTitle
+        , _aTxtDigits    = txtDigits
+        , _aLvlNames     = fst lvlData
+        , _aLvlFiles     = snd lvlData
+        , _aLvlTitles    = lvlTitles
+        , _aLvlSubtitles = lvlSubtitles
         }
     
 
@@ -139,17 +143,24 @@ loadLevels = do
 loadLevel :: LevelName -> Reader Environment LevelState
 loadLevel levelName = do
     env <- ask
-    let levelNames  = view (eAssets . aLvlNames) env
-        levelFiles  = view (eAssets . aLvlFiles) env
-        lvlNameFile = zip levelNames levelFiles
-        levelFile   = fromMaybe "     " . (`lookup` lvlNameFile) $ show levelName
-        levelCells  = (`runReader` env) . prepareData . reverse $ lines levelFile
+    let levelNames    = view (eAssets . aLvlNames) env
+        levelFiles    = view (eAssets . aLvlFiles) env
+        lvlNameFile   = zip levelNames levelFiles
+        levelFile     = fromMaybe "     " . (`lookup` lvlNameFile) $ show levelName
+        levelCells    = (`runReader` env) . prepareData . reverse $ lines levelFile
     return LevelState
-        { _lLevelName  = levelName
-        , _lLevelCells = levelCells
+        { _lLevelName     = levelName
+        , _lLevelCells    = levelCells
         }
     
 
+loadLevelTransition :: String -> IO [(LevelName, Picture)]
+loadLevelTransition asset = do
+    let textPath = rootDir ++ "text/"
+        lvlNames = map show [Level1 .. Level3]
+    titles <- forM lvlNames (\ lv -> loadBMP $
+        textPath ++ lv ++ asset ++ ".bmp")
+    return $ zip [Level1 ..] titles
 
 incPlayerSprite :: (PureRWS m) => m ()
 incPlayerSprite = do

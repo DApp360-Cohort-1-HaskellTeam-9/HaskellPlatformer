@@ -3,8 +3,8 @@
 module Game.Data.State where
 
 import Control.Lens
-
 import Game.Data.Enum
+import Graphics.Gloss
 
 type XY        = (Float, Float)
 type CellType  = Char
@@ -28,17 +28,10 @@ makeLenses ''PlayerState
 
 data LevelState
     = LevelState
-    { _lLevelName      :: LevelName    -- Name of level
-    , _lLevelCells     :: GameLevel    -- Cell representation of level 
+    { _lLevelName     :: LevelName -- Name of level
+    , _lLevelCells    :: GameLevel -- Cell representation of level 
     }
 makeLenses ''LevelState
-
-data Paralax
-    = Paralax
-    { _pTargetParalax :: XY
-    , _pCurrParalax   :: XY
-    }
-makeLenses ''Paralax
 
 data GameState
     = GameState 
@@ -51,8 +44,7 @@ data GameState
     , _gDeltaSec       :: Float
     , _gForce          :: Float
     , _gGameScene      :: GameScene
-    , _gParalax        :: Paralax
+    , _gTransition     :: Float
+    , _gParalax        :: XY
     }
 makeLenses ''GameState
-
-

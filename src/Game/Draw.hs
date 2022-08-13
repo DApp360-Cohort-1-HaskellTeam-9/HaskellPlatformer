@@ -16,6 +16,8 @@ import Graphics.Gloss
 
 renderGame :: RWSIO Picture
 renderGame = do
+    env <- ask
+
     -- level cell/tiles pictures
     level        <- use (gLevelState . lLevelCells)
     layerBack    <- drawTiles "*tb"
@@ -32,8 +34,21 @@ renderGame = do
     text         <- renderText
     timer        <- renderTimer
     
-    -- title picture
+    -- title pictures
     titlePic     <- scaleTitle
+    levelName    <- use (gLevelState . lLevelName)
+    transition   <- use gTransition
+    let tX            = 256 * min 0 transition
+        posTitle      = ( tX,  32)
+        posSubtitle   = (-tX, -64)
+        lvlTitles = view (eAssets . aLvlTitles   ) env
+        lvlSubs   = view (eAssets . aLvlSubtitles) env
+        lvlTitle  = case lookup levelName lvlTitles of
+            Just title -> [uncurry translate posTitle $ title]
+            Nothing    -> []
+        lvlSub    = case lookup levelName lvlSubs of
+            Just sub   -> [uncurry translate posSubtitle $ sub]
+            Nothing    -> []
     
     scene <- use gGameScene
     return . pictures $ case scene of 
@@ -55,6 +70,8 @@ renderGame = do
             layerBack  ++
             playerPic  ++
             layerFront ++
+            lvlTitle   ++
+            lvlSub     ++
             text       ++
             timer        
         SceneWin       ->
@@ -62,11 +79,9 @@ renderGame = do
             -- tiles ++
             text
         SceneLose      ->
-            background ++ 
+            background ++
             -- tiles ++
             text
-        SceneTransition ->
-            [] --Not sure
         
     
 
@@ -99,6 +114,7 @@ updateGame sec = do
             
             checkDoor
             updateParalax
+            updateTransition
     get --  return GameState
 
 -- Helper Functions:
@@ -132,12 +148,6 @@ drawTiles cellTypes = do
         tile  <- renderTile cell
         return . uncurry translate pos $ tile)
     
-
--- Deprecated
--- drawTile :: (PureRWS m) => Cell -> m Picture
--- drawTile (pos, cellType) = do
---     tile <- renderTile cellType
---     return . uncurry translate pos $ tile
 
 renderText :: (PureRWS m) => m [Picture]
 renderText = do
@@ -184,24 +194,26 @@ renderBackground = do
         imgToUse = lookup (show level) zipLvls
     
     -- paralax
-    paralax <- use (gParalax . pCurrParalax)
+    paralax <- use gParalax
     case imgToUse of
         Just bg -> return [uncurry translate paralax $ bg]
         Nothing -> return []
     
+
 updateParalax :: (PureRWS m) => m ()
 updateParalax = do
-    d <- use gDeltaSec
+    d      <- use gDeltaSec
+    (x, y) <- use (gPlayerState . pPosition)
     
-    -- update curr paralax
     let move a b = a + 5 * d * signum c * abs c where c = b - a
         smooth (x1, y1) (x2, y2) = (move x1 x2, move y1 y2)
-    toTarget <- use (gParalax . pTargetParalax)
-    gParalax . pCurrParalax %= (`smooth` toTarget)
-    
-    -- update target paralax
-    (x, y) <- use (gPlayerState . pPosition)
-    gParalax . pTargetParalax .= (-x/5, -y/25)
+        toTarget = (-x/5, -y/25)
+    gParalax %= (`smooth` toTarget)
+
+updateTransition :: (PureRWS m) => m ()
+updateTransition = do
+    sec <- use gDeltaSec
+    gTransition %= (+ (-sec))
 
 renderDigits :: String -> [Picture] -> [Picture]
 renderDigits [] _ = []

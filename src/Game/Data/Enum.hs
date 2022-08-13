@@ -3,7 +3,6 @@ module Game.Data.Enum where
 -- This is to control render and update functions
 data GameScene
     = SceneLevel
-    | SceneTransition
     | SceneWin
     | SceneLose
     | ScenePause
@@ -28,4 +27,4 @@ data LevelName
     | Level3
     | LevelCredits
     | LevelStart
-    deriving (Show, Bounded, Enum)
+    deriving (Show, Eq, Bounded, Enum)
