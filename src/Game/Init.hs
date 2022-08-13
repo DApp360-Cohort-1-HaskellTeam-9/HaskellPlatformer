@@ -39,6 +39,7 @@ initState args = do
         , _gForce         = 10 -- gravity constant for this level
         , _gGameScene     = SceneLevel
         , _gParalax       = (0, 0)
+        , _gTransition    = 1
         }
     
 

@@ -73,20 +73,19 @@ checkDoor = do
             when isDoorOpen $ do
                 env <- ask
                 
-                gPlayerState .= initPlayer -- reset player
-                gParalax     .= (0, 0)     -- reset paralax
+                gPlayerState .= initPlayer
+                gParalax     .= (0, 0)
+                gTransition  .= 1
                 
                 currLevel    <- use (gLevelState . lLevelName)
                 let nextLevel = flip runReader env . loadLevel . succ $ currLevel
                 gLevelState  .= nextLevel
-
-                let lvCells = view lLevelCells nextLevel
-                    keyType = getKeyCellType
-                gTotalKeys .= levelItemCount lvCells keyType
                 
-                gDoorOpen  .= False
-                -- TODO: gTimeRemaining
-                -- TODO: gGameScene .= SceneTransition
+                let lvCells   = view lLevelCells nextLevel
+                    keyType   = getKeyCellType
+                gTotalKeys   .= levelItemCount lvCells keyType
+                
+                gDoorOpen    .= False
         Nothing -> return ()
     
 
