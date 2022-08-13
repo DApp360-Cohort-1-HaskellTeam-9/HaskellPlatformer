@@ -33,13 +33,6 @@ data LevelState
     }
 makeLenses ''LevelState
 
-data Paralax
-    = Paralax
-    { _pTargetParalax :: XY
-    , _pCurrParalax   :: XY
-    }
-makeLenses ''Paralax
-
 data GameState
     = GameState 
     { _gPlayerState    :: PlayerState
@@ -51,7 +44,7 @@ data GameState
     , _gDeltaSec       :: Float
     , _gForce          :: Float
     , _gGameScene      :: GameScene
-    , _gParalax        :: Paralax
+    , _gParalax        :: XY
     }
 makeLenses ''GameState
 

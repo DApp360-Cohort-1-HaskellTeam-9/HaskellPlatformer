@@ -73,8 +73,8 @@ checkDoor = do
             when isDoorOpen $ do
                 env <- ask
                 
-                gPlayerState .= initPlayer  -- reset player
-                gParalax     .= initParalax -- reset paralax
+                gPlayerState .= initPlayer -- reset player
+                gParalax     .= (0, 0)     -- reset paralax
                 
                 currLevel    <- use (gLevelState . lLevelName)
                 let nextLevel = flip runReader env . loadLevel . succ $ currLevel
