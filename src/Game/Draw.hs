@@ -44,10 +44,10 @@ renderGame = do
         lvlTitles = view (eAssets . aLvlTitles   ) env
         lvlSubs   = view (eAssets . aLvlSubtitles) env
         lvlTitle  = case lookup levelName lvlTitles of
-            Just title -> [uncurry translate posTitle $ title]
+            Just title -> [uncurry translate posTitle title]
             Nothing    -> []
         lvlSub    = case lookup levelName lvlSubs of
-            Just sub   -> [uncurry translate posSubtitle $ sub]
+            Just sub   -> [uncurry translate posSubtitle sub]
             Nothing    -> []
     
     scene <- use gGameScene
@@ -207,7 +207,7 @@ renderBackground = do
     -- paralax
     paralax <- use gParalax
     case imgToUse of
-        Just bg -> return [uncurry translate paralax $ bg]
+        Just bg -> return [uncurry translate paralax bg]
         Nothing -> return []
     
 

@@ -38,8 +38,8 @@ initAssets = do
         { _aPlayer       = playerImgs
         , _aKey          = (keyImg, 'k')
         , _aDoor         = doorImgs
-        , _aBase         = last $ baseImgs -- TODO: Is there a better function?
-        , _aGrass        = head $ baseImgs -- TODO: Is there a better function?
+        , _aBase         = last baseImgs -- TODO: Is there a better function?
+        , _aGrass        = head baseImgs -- TODO: Is there a better function?
         , _aCoin         = coinImgs
         , _aBgImg        = bgImgs
         , _aTxtPause     = txtPause
@@ -61,9 +61,8 @@ initAssets = do
 --     currentContext $= Just context
     
 --     let -- Credits to: dixonary / hake
---         -- Load our sound file enum into an array.
---         soundFiles :: [SoundType]
---         soundFiles = [minBound..maxBound]
+--         soundTypes :: [SoundType]
+--         soundTypes = [minBound..maxBound]
         
 --         soundPath :: SoundType -> String
 --         soundPath Coin      = "./assets/sounds/wizzle.wav"
@@ -72,14 +71,14 @@ initAssets = do
 --         soundPath DoorClose = "./assets/sounds/blip.wav"
         
 --         -- Generate buffer queue for each sound.
---         loadBuffer sf = do
---             buf <- createBuffer $ File $ soundPath sf
+--         loadBuffer s = do
+--             buf   <- createBuffer $ File $ soundPath s
 --             [src] <- genObjectNames 1
 --             queueBuffers src [buf]
---             return (sf, src)
+--             return (s, src)
     
 --     -- Run loadBuffer for each soundFile.
---     sounds <- mapM loadBuffer soundFiles
+--     sounds <- forM soundTypes loadBuffer
     
 --     -- Construct our stateful SoundInfo.
 --     return $ SoundInfo device context sounds
@@ -202,7 +201,7 @@ getDoorSprite = do
                 False -> case   (doorImgs ^? element 3, doorImgs ^? element 2) of
                                 (Just x, Just y)  -> (Just x, Just y)     
                                 (_,_)             -> (Nothing, Nothing)   
-    return (fromJust $ doorTopImg, fromJust $ doorBottomImg)
+    return (fromJust doorTopImg, fromJust doorBottomImg)
 
 -- ALUT
 -- playSound :: SoundType -> RWSIO ()

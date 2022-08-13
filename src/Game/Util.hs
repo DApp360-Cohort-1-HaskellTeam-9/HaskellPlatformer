@@ -12,9 +12,11 @@ import Graphics.Gloss
 prepareData :: [String] -> Reader Environment GameLevel
 prepareData [] = return []
 prepareData (s:ss) = do
-    env <- ask 
-    return $ concat [runReader (makeRow s rowNumber) env, runReader (prepareData ss) env]
-        where rowNumber = length ss    --- ^ Row number is counted from bottom
+    env <- ask
+    return $ -- rowNumber is counted from bottom
+        runReader (makeRow s rowNumber) env ++
+        runReader (prepareData ss     ) env
+        where rowNumber = length ss
     
 
 -- | Parse a row in a text level representation 
@@ -35,7 +37,8 @@ makeRow (c:cs) rowNumber
 
 levelItemCount :: GameLevel -> [CellType] -> Int
 levelItemCount level items =
-    length $ filter ((`elem` items) . snd) level
+    length $ filter isItem level
+    where isItem = (`elem` items) . snd
 
 isHit :: Point -> Point -> Float -> Bool
 isHit (x1, y1) (x2, y2) tileSize =

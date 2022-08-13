@@ -18,7 +18,7 @@ removeItem :: (PureRWS m) => m GameLevel
 removeItem = do
     env <- ask
     let tileSize = view eTileSize env
-    let itemTiles = concat [getCoinCellType, getKeyCellType]
+    let itemTiles = getCoinCellType ++ getKeyCellType
     
     currentLv <- use (gLevelState . lLevelCells)
     playerPos <- use (gPlayerState . pPosition)
