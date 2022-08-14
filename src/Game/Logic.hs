@@ -119,7 +119,9 @@ incKeys = do
         Nothing -> do
             return collectedKeys
         Just _  -> do
-            -- playSound Key
-            return . succ $ collectedKeys
+            let keys = collectedKeys + 1
+            totalKeys <- use gTotalKeys
+            tell ["Collected keys " ++ show keys ++ " / " ++ show totalKeys]
+            return keys
         
     
