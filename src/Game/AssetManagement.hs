@@ -121,15 +121,13 @@ loadTxtDigits = do
     digitImgs <- mapM (loadBMP . (\n -> dir ++ n : ".bmp")) imgNames
     return digitImgs
 
---I changed the lists back to hardcoded values as it wasn't rendering background properly.. 
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = map show [Level1, Level2, Level3, LevelCredits, LevelStart]-- Placeholder for all backgrounds
+    let imgNames = map show [Level1 ..]-- Placeholder for all backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
---As above
 loadLevels :: IO ([String],[String])
 loadLevels = do
     let levelDir = "./assets/levels/"
