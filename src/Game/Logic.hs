@@ -121,9 +121,11 @@ incKeys = do
         Nothing -> do
             return collectedKeys
         Just _  -> do
+            level <- use (gLevelState . lLevelName)
             let keys = collectedKeys + 1
             totalKeys <- use gTotalKeys
-            tell ["Collected keys " ++ show keys ++ " / " ++ show totalKeys]
+            tell [show level ++ ": Collected keys " ++ show keys
+                ++ " / " ++ show totalKeys]
             return keys
         
     
