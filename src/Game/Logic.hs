@@ -11,6 +11,7 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Init
 import Game.Util
+import Game.Data.Enum
 
 import Graphics.Gloss
 
@@ -114,12 +115,12 @@ incKeys = do
     
     let keyCell = getKeyCellType -- view (eSprites . aKey) env
     keyFound <- collideWith keyCell playerPos
-    
+
+
     case keyFound of
         Nothing -> do
             return collectedKeys
         Just _  -> do
-            -- playSound Key
+            --playSound Key
             return . succ $ collectedKeys
-        
     

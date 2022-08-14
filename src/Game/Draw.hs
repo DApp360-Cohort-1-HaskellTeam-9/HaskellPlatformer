@@ -13,6 +13,7 @@ import Game.Logic
 import Game.Data.Enum
 
 import Graphics.Gloss
+import Data.Char
 
 renderGame :: RWSIO Picture
 renderGame = do
@@ -86,12 +87,9 @@ renderGame = do
                     text       ++
                     timer
         SceneWin       ->
-            background ++ 
-            -- tiles ++
-            text
+            background
         SceneLose      ->
             background ++
-            -- tiles ++
             text
         
     
@@ -126,6 +124,8 @@ updateGame sec = do
             checkDoor
             updateParalax
             updateTransition
+        _           ->
+            return ()
     get --  return GameState
 
 -- Helper Functions:
@@ -169,27 +169,25 @@ renderText = do
     let title     = view (eAssets . aTxtTitle) env
     let enter     = view (eAssets . aTxtEnter) env
     let startText = [uncurry translate (0,-200) enter] 
-
-    case scene of
-        ScenePause  -> case level of
-                    LevelStart  -> return startText --Add credits screen?
-                    _           -> return [continue]
-        _           -> case level of
-                    LevelStart  -> return startText 
-                    _           -> return []
+    return $
+        case scene of
+            ScenePause -> [continue]
+            SceneStart -> startText
+            _          -> []
 
 --Will fix up numbers 
 scaleTitle :: (PureRWS m) => m [Picture]
 scaleTitle = do
     env <- ask
     timeRemaining <- use gTimeRemaining
-    let delta = (120 - timeRemaining) * 2
+    let rate = 3 -- Rate in which the picture scales based on ticks
+    let tick = (120 - timeRemaining) * rate 
     let fps = view (eFPS) env
     let title  = view (eAssets . aTxtTitle) env
-    let newDelta =  if delta >= 10
-                    then 10
-                    else delta
-    let scaleXY = newDelta / 10
+    let newTick =  if tick >= 15
+                    then 15
+                    else tick
+    let scaleXY = newTick / 10
     let pic = scale scaleXY scaleXY $ uncurry translate (0,100) title
     return [pic]
 
@@ -209,7 +207,6 @@ renderBackground = do
     case imgToUse of
         Just bg -> return [uncurry translate paralax $ bg]
         Nothing -> return []
-    
 
 updateParalax :: (PureRWS m) => m ()
 updateParalax = do

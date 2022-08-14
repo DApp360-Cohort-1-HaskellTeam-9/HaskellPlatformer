@@ -17,8 +17,8 @@ initEnv args = do
         { _eTileSize = 32
         , _eWindowWidth = 1024
         , _eWindowHeight = 768
-        , _eFPS      = 360 -- on my screen, at 120 fps there's a noticable jitter on character move when using BMP sprite
-                           -- my screen is only 144Hz, but there's a 360Hz gaming monitor on the market :-D
+        , _eFPS      = 360
+        --, _eSounds  = sounds
         , _eAssets = assets
         -- ALUT
         -- , _eSounds  = sounds
@@ -33,11 +33,10 @@ initState args = do
         , _gLevelState    = runReader initLevel env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
-        --, _gPaused        = False
         , _gTimeRemaining = 120
         , _gDeltaSec      = 0
         , _gForce         = 10 -- gravity constant for this level
-        , _gGameScene     = SceneLevel
+        , _gGameScene     = SceneStart
         , _gParalax       = (0, 0)
         , _gTransition    = 1
         }
@@ -53,7 +52,7 @@ initPlayer = PlayerState
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
     , _pCollectedKeys = 0
-    }
+    }   
 
 initLevel :: Reader Environment LevelState
 initLevel = loadLevel minBound
