@@ -43,10 +43,13 @@ renderGame = do
         posSubtitle   = (-tX, -64)
         lvlTitles = view (eAssets . aLvlTitles   ) env
         lvlSubs   = view (eAssets . aLvlSubtitles) env
-        lvlTitle  = case lookup levelName lvlTitles of
+        (w, h)    = (view eWindowWidth env, view eWindowHeight env)
+        lvlTitle  = if tX < -fromIntegral w then []
+            else case lookup levelName lvlTitles of
             Just title -> [uncurry translate posTitle title]
             Nothing    -> []
-        lvlSub    = case lookup levelName lvlSubs of
+        lvlSub    = if tX < -fromIntegral h then []
+            else case lookup levelName lvlSubs of
             Just sub   -> [uncurry translate posSubtitle sub]
             Nothing    -> []
     
