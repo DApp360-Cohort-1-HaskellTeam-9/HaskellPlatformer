@@ -45,6 +45,6 @@ data GameState
     , _gForce          :: Float
     , _gGameScene      :: GameScene
     , _gTransition     :: Float
-    , _gParalax        :: XY
+    , _gParallax        :: XY
     }
 makeLenses ''GameState

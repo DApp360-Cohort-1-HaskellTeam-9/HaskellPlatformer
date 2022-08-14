@@ -74,7 +74,7 @@ checkDoor = do
                 env <- ask
                 
                 gPlayerState .= initPlayer
-                gParalax     .= (0, 0)
+                gParallax     .= (0, 0)
                 gTransition  .= 1
                 
                 currLevel    <- use (gLevelState . lLevelName)

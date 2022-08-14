@@ -124,7 +124,7 @@ updateGame sec = do
             gDoorOpen .= door
             
             checkDoor
-            updateParalax
+            updateParallax
             updateTransition
     get --  return GameState
 
@@ -204,27 +204,26 @@ renderBackground = do
         zipLvls  = zip lvlList bgImgs
         imgToUse = lookup (show level) zipLvls
     
-    -- paralax
-    paralax <- use gParalax
+    parallax <- use gParallax
     case imgToUse of
-        Just bg -> return [uncurry translate paralax bg]
+        Just bg -> return [uncurry translate parallax bg]
         Nothing -> return []
     
 
-updateParalax :: (PureRWS m) => m ()
-updateParalax = do
+updateParallax :: (PureRWS m) => m ()
+updateParallax = do
     d      <- use gDeltaSec
     (x, y) <- use (gPlayerState . pPosition)
     
-    let move a b = a + 5 * d * signum c * abs c where c = b - a
-        smooth (x1, y1) (x2, y2) = (move x1 x2, move y1 y2)
-        toTarget = (-x/5, -y/25)
-    gParalax %= (`smooth` toTarget)
+    let smooth a b = a + 5 * d * signum c * abs c where c = b - a
+        moveTo (x1, y1) (x2, y2) = (smooth x1 x2, smooth y1 y2)
+        target = (-x/5, -y/25)
+    gParallax %= (`moveTo` target)
 
 updateTransition :: (PureRWS m) => m ()
 updateTransition = do
     sec <- use gDeltaSec
-    gTransition %= (+ (-sec))
+    gTransition %= (+negate sec)
 
 renderDigits :: String -> [Picture] -> [Picture]
 renderDigits [] _ = []
