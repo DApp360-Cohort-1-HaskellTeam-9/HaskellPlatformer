@@ -14,9 +14,7 @@ import Data.Maybe
 
 import Graphics.Gloss
 
--- import Sound.ALUT as Sound
-
---loadImgs :: RWST Environment [String] GameState IO [Picture]
+--import Sound.ALUT as Sound
 
 initAssets :: IO Assets
 initAssets = do

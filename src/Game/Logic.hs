@@ -114,12 +114,13 @@ incKeys = do
     
     let keyCell = getKeyCellType -- view (eSprites . aKey) env
     keyFound <- collideWith keyCell playerPos
-    
+
+
     case keyFound of
         Nothing -> do
             return collectedKeys
         Just _  -> do
-            -- playSound Key
+            --playSound Key
             return . succ $ collectedKeys
         
     

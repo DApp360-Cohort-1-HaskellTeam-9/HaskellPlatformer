@@ -13,6 +13,7 @@ import Game.Logic
 import Game.Data.Enum
 
 import Graphics.Gloss
+import Data.Char
 
 renderGame :: RWSIO Picture
 renderGame = do
