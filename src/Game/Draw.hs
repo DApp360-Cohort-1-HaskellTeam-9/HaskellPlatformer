@@ -182,7 +182,6 @@ scaleTitle = do
     timeRemaining <- use gTimeRemaining
     let rate = 3 -- Rate in which the picture scales based on ticks
     let tick = (120 - timeRemaining) * rate 
-    let fps = view (eFPS) env
     let title  = view (eAssets . aTxtTitle) env
     let newTick =  if tick >= 15
                     then 15
