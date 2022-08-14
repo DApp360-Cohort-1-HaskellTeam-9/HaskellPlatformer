@@ -2,11 +2,18 @@ module Game.Util where
 
 import Control.Lens
 import Control.Monad.Reader
+import Control.Monad.Writer
 
+import Game.Data.Alias
 import Game.Data.Environment
 import Game.Data.State
 
 import Graphics.Gloss
+
+logDebug :: (PureRWS m) => String -> m ()
+logDebug msg = do
+    level <- use (gLevelState . lLevelName)
+    tell [show level ++ ": " ++ msg]
 
 -- | Create a GameLevel from a text file level representation
 prepareData :: [String] -> Reader Environment GameLevel
