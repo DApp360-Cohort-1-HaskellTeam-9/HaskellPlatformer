@@ -47,16 +47,19 @@ collideWith colliders point = do
 openDoor :: RWSIO Bool
 openDoor = do
     gs <- get
-    collectedKeys   <- use (gPlayerState . pCollectedKeys)
-    totalKeys       <- use gTotalKeys
-    currentLevel    <- use (gLevelState . lLevelCells)
+    collectedKeys <- use (gPlayerState . pCollectedKeys)
+    totalKeys     <- use gTotalKeys
+    currentLevel  <- use (gLevelState . lLevelCells)
     
     if collectedKeys == totalKeys
         then do
             isDoorOpen <- use gDoorOpen
-            -- ALUT
-            -- unless isDoorOpen $ playSound DoorOpen
-            -- ENDALUT
+            unless isDoorOpen $ do
+                when (totalKeys > 0) $
+                    logDebug "Opening the door"
+                -- ALUT
+                -- playSound DoorOpen
+                -- ENDALUT
             return True
         else do
             return False
@@ -121,11 +124,9 @@ incKeys = do
         Nothing -> do
             return collectedKeys
         Just _  -> do
-            level <- use (gLevelState . lLevelName)
-            let keys = collectedKeys + 1
+            let keys   = collectedKeys + 1
             totalKeys <- use gTotalKeys
-            tell [show level ++ ": Collected keys " ++ show keys
-                ++ " / " ++ show totalKeys]
+            logDebug $ "Collected keys " ++ show keys ++ " / " ++ show totalKeys
             return keys
         
     

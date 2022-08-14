@@ -7,13 +7,12 @@ import Game.Action
 import Game.AssetManagement
 import Game.Data.Alias
 import Game.Data.Asset
+import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
 import Game.Logic
-import Game.Data.Enum
 
 import Graphics.Gloss
-import Data.Char
 
 renderGame :: RWSIO Picture
 renderGame = do
@@ -71,7 +70,7 @@ renderGame = do
             text
         SceneLevel     ->
             if transition < 0
-                then
+                then -- put level name title and subtitle at the back
                     background ++
                     lvlTitle   ++
                     lvlSub     ++
@@ -80,7 +79,7 @@ renderGame = do
                     layerFront ++
                     text       ++
                     timer
-                else
+                else -- put level name title and subtitle at the front
                     background ++
                     layerBack  ++
                     playerPic  ++
@@ -99,8 +98,7 @@ renderGame = do
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
-    gDeltaSec .= sec -- might need this for other screen states
-                     -- normally, the value should be 1/FPS
+    gDeltaSec .= sec
     timeRemaining  <- use gTimeRemaining
     gTimeRemaining .= timeRemaining - sec
     
