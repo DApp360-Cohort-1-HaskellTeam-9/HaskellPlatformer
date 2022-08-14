@@ -37,7 +37,7 @@ initState args = do
         , _gDeltaSec      = 0
         , _gForce         = 10 -- gravity constant for this level
         , _gGameScene     = SceneStart
-        , _gParalax       = (0, 0)
+        , _gParallax       = (0, 0)
         , _gTransition    = 1
         }
     

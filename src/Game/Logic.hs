@@ -19,7 +19,7 @@ removeItem :: (PureRWS m) => m GameLevel
 removeItem = do
     env <- ask
     let tileSize = view eTileSize env
-    let itemTiles = concat [getCoinCellType, getKeyCellType]
+    let itemTiles = getCoinCellType ++ getKeyCellType
     
     currentLv <- use (gLevelState . lLevelCells)
     playerPos <- use (gPlayerState . pPosition)
@@ -75,7 +75,7 @@ checkDoor = do
                 env <- ask
                 
                 gPlayerState .= initPlayer
-                gParalax     .= (0, 0)
+                gParallax     .= (0, 0)
                 gTransition  .= 1
                 
                 currLevel    <- use (gLevelState . lLevelName)
@@ -121,6 +121,11 @@ incKeys = do
         Nothing -> do
             return collectedKeys
         Just _  -> do
-            --playSound Key
-            return . succ $ collectedKeys
+            level <- use (gLevelState . lLevelName)
+            let keys = collectedKeys + 1
+            totalKeys <- use gTotalKeys
+            tell [show level ++ ": Collected keys " ++ show keys
+                ++ " / " ++ show totalKeys]
+            return keys
+        
     

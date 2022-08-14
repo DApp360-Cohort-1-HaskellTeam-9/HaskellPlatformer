@@ -27,17 +27,17 @@ main = do
     
     let draw world = do
             (scene, logMessages) <- evalRWST renderGame env world
-            -- do something with logMessages if needed
+            mapM_ putStrLn logMessages
             return scene
     
     let handleEvent event currState = do
             (nextState, logMessages) <- evalRWST (handleKeys event) env currState
-            -- do something with logMessages if needed
+            mapM_ putStrLn logMessages
             return nextState
     
     let step sec currState = do
             (nextState, logMessages) <- evalRWST (updateGame sec) env currState
-            -- do something with logMessages if needed
+            mapM_ putStrLn logMessages
             return nextState
     
     playIO window bgColor fps world draw handleEvent step
