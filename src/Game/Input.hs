@@ -28,6 +28,12 @@ handleKeys e = do
         _                              ->
             case scene of
                 ScenePause -> return ()
+                SceneStart -> 
+                    case e of
+                        (EventKey (SpecialKey KeyEnter) Down _ _) ->
+                            updateScene SceneLevel
+                        _                                         -> 
+                            return ()
                 _           -> case e of 
                                     (EventKey (SpecialKey KeyLeft) Down _ _)  -> 
                                         moveLeft
@@ -96,5 +102,10 @@ stopMoveRight = do
         MoveRight -> gPlayerState . pMovement .= MoveStop
         _         -> return ()
     
+
+updateScene :: (PureRWS m) => GameScene -> m ()
+updateScene scene = do
+    gGameScene .= scene
+
 
 -- exitGame??

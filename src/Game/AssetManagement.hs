@@ -121,20 +121,20 @@ loadTxtDigits = do
     digitImgs <- mapM (loadBMP . (\n -> dir ++ n : ".bmp")) imgNames
     return digitImgs
 
-
---Add more backgrounds later
+--I changed the lists back to hardcoded values as it wasn't rendering background properly.. 
 loadBackgrounds :: IO [Picture]
 loadBackgrounds = do
     let dir = rootDir ++ "backgrounds/"
-    let imgNames = map show [Level1 ..] -- Placeholder for all backgrounds
+    let imgNames = map show [Level1, Level2, Level3, LevelCredits, LevelStart]-- Placeholder for all backgrounds
     bgImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return bgImgs
 
+--As above
 loadLevels :: IO ([String],[String])
 loadLevels = do
     let levelDir = "./assets/levels/"
-        lvlNames = map show [Level1 .. Level3]
-        miscLvls = map show [LevelCredits  ..]
+        lvlNames = map show [Level1, Level2, Level3] --[Level1 .. Level3]
+        miscLvls = map show [LevelCredits, LevelStart]
     levels <- mapM (readFile . (\n -> levelDir ++ n ++ ".txt")) lvlNames
     return (lvlNames ++ miscLvls, levels)
 
@@ -150,7 +150,6 @@ loadLevel levelName = do
         { _lLevelName     = levelName
         , _lLevelCells    = levelCells
         }
-    
 
 loadLevelTransition :: String -> IO [(LevelName, Picture)]
 loadLevelTransition asset = do

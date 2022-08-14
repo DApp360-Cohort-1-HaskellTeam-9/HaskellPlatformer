@@ -36,7 +36,7 @@ initState args = do
         , _gTimeRemaining = 120
         , _gDeltaSec      = 0
         , _gForce         = 10 -- gravity constant for this level
-        , _gGameScene     = SceneLevel
+        , _gGameScene     = SceneStart
         , _gParalax       = (0, 0)
         , _gTransition    = 1
         }
@@ -52,7 +52,7 @@ initPlayer = PlayerState
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
     , _pCollectedKeys = 0
-    }
+    }   
 
 initLevel :: Reader Environment LevelState
 initLevel = loadLevel minBound

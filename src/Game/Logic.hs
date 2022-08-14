@@ -11,6 +11,7 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Init
 import Game.Util
+import Game.Data.Enum
 
 import Graphics.Gloss
 
@@ -122,5 +123,4 @@ incKeys = do
         Just _  -> do
             --playSound Key
             return . succ $ collectedKeys
-        
     
