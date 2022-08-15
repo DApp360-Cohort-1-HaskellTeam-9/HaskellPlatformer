@@ -13,7 +13,6 @@ import Game.Data.State
 import Game.Logic
 
 import Graphics.Gloss
-import Game.Util
 
 renderGame :: RWSIO Picture
 renderGame = do
@@ -167,10 +166,14 @@ renderText = do
     env          <- ask
     scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
+    timeRemaining<- use gTimeRemaining
     let continue  = view (eAssets . aTxtPause) env
-    let title     = view (eAssets . aTxtTitle) env
-    let enter     = view (eAssets . aTxtEnter) env
-    let startText = [uncurry translate (0,-200) enter] 
+        title     = view (eAssets . aTxtTitle) env
+        enter     = view (eAssets . aTxtEnter) env
+        startText = if (120 - timeRemaining) * 5 > 15
+            && (odd . truncate $ timeRemaining * 2)
+            then [uncurry translate (0,-150) enter]
+            else [] 
     return $
         case scene of
             ScenePause -> [continue]
@@ -182,13 +185,13 @@ scaleTitle :: (PureRWS m) => m [Picture]
 scaleTitle = do
     env <- ask
     timeRemaining <- use gTimeRemaining
-    let rate    = 3 -- Rate in which the picture scales based on ticks
+    let rate    = 5 -- Rate in which the picture scales based on ticks
         tick    = (120 - timeRemaining) * rate 
         title   = view (eAssets . aTxtTitle) env
         newTick = min 15 tick
         pulse   = 1 + sin (max 15 tick - 15) / 15
         scaleXY = pulse * newTick / 10
-        pic = scale scaleXY scaleXY $ uncurry translate (0,100) title
+        pic = scale scaleXY scaleXY $ uncurry translate (0,50) title
     return [pic]
 
 renderBackground :: (PureRWS m) => m [Picture]
