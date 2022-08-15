@@ -9,6 +9,7 @@ import Game.Data.Alias
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Game.Init
 import Game.Logic
 
 import Graphics.Gloss.Interface.IO.Game
@@ -105,7 +106,8 @@ stopMoveRight = do
 
 updateScene :: (PureRWS m) => GameScene -> m ()
 updateScene scene = do
-    gGameScene .= scene
+    gPlayerState .= initPlayer -- reset player
+    gGameScene   .= scene
 
 
 -- exitGame??
