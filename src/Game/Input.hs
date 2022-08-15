@@ -14,13 +14,14 @@ import Game.Logic
 
 import Graphics.Gloss.Interface.IO.Game
 
---TODO: Add text "Press 'p' to continue" or similar. t
+import System.Exit
 
 handleKeys :: Event -> RWSIO GameState
 handleKeys e = do
     scene <- use gGameScene
     heading  <- use (gPlayerState . pHeading)
     case e of
+        (EventKey (SpecialKey KeyEsc) Up _ _) -> liftIO exitSuccess
         (EventKey (Char 'p') Down _ _) -> do
             pauseGame
             case heading of
