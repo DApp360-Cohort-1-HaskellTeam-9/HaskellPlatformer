@@ -33,6 +33,7 @@ renderGame = do
     background   <- renderBackground
     text         <- renderText
     timer        <- renderTimer
+    creditsPic   <- scrollCredits
     
     -- title pictures
     titlePic     <- scaleTitle
@@ -69,7 +70,7 @@ renderGame = do
             text
         SceneCredits   ->
             background ++ 
-            text
+            creditsPic
         SceneLevel     ->
             if transition < 0
                 then -- put level name title and subtitle at the back
@@ -214,17 +215,36 @@ scaleTitle = do
         pic = scale scaleXY scaleXY $ uncurry translate (0,50) title
     return [pic]
 
+--Might need to retake the credits image as the first line is off center..
+scrollCredits :: (PureRWS m) => m [Picture]
+scrollCredits = do
+    env <- ask
+    sec <- use gSec
+    timeRemaining <- use gTimeRemaining
+    let credits = view (eAssets . aTxtCredits) env
+        rate = 20 -- Rate in which the picture scrolls based on ticks
+        tick = sec * rate -- Uses seconds gone by to reduce to a value below 2 
+        pic = uncurry translate (-75,-1200+tick) credits
+    return [pic]
+
+
+
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
-    env   <- ask
+    env <- ask
     level <- use (gLevelState . lLevelName)
-    scene <- use (gGameScene)   
-    
-    let lvlList  = view (eAssets . aLvlNames) env
-        bgImgs   = view (eAssets . aBgImg   ) env
-        zipLvls  = zip lvlList bgImgs
-        imgToUse = lookup (show level) zipLvls
-    
+    scene <- use (gGameScene) 
+
+    let lvlList = (view (eAssets . aLvlNames) env)
+    let bgImgs = view (eAssets . aBgImg ) env
+    let zipLvls = zip lvlList bgImgs
+
+    let imgToUse = 
+            case scene of 
+                SceneStart    -> lookup (show LevelStart) zipLvls
+                SceneCredits  -> lookup (show LevelCredits) zipLvls
+                _             -> lookup (show level) zipLvls
+
     parallax <- use gParallax
     case imgToUse of
         Just bg -> return [uncurry translate parallax bg]

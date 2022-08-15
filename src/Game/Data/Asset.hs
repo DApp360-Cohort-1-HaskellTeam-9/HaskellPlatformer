@@ -15,7 +15,7 @@ data Assets
     = Assets -- Use Assets instead of Sprites?
     { _aPlayer       :: [Picture]
     , _aKey          :: (Picture, CellType)  -- collect keys instead of food
-    , _aDoor         :: [Picture] -- locked | unlocked by collecting all keys
+    , _aDoor         :: [(Int, Picture)] -- locked | unlocked by collecting all keys
     , _aBase         :: Picture
     , _aGrass        :: Picture 
     , _aCoin         :: [Picture] -- Spinning coin sprites?
@@ -23,6 +23,7 @@ data Assets
     , _aTxtPause     :: Picture
     , _aTxtTitle     :: Picture
     , _aTxtEnter     :: Picture
+    , _aTxtCredits   :: Picture
     , _aTxtDigits    :: [Picture]
     , _aLvlNames     :: [String] 
     , _aLvlFiles     :: [String]

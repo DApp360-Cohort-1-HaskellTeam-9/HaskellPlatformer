@@ -18,37 +18,39 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
-    txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
-    txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
-    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp"
-    txtDigits    <- loadTxtDigits
-    coinImgs     <- loadCoin
-    doorImgs     <- loadDoor
-    bgImgs       <- loadBackgrounds
-    playerImgs   <- loadPlayers
-    baseImgs     <- loadBaseTiles
-    lvlData      <- loadLevels
-    lvlTitles    <- loadLevelTransition ""
+    keyImg <- loadBMP "./assets/graphics/items/key.bmp"
+    txtPause <- loadBMP "./assets/graphics/text/continue.bmp" 
+    txtTitle <- loadBMP "./assets/graphics/text/title.bmp" 
+    txtEnter <- loadBMP "./assets/graphics/text/enter.bmp"
+    txtCredits <- loadBMP "./assets/graphics/text/credits.bmp"
+    txtDigits <- loadTxtDigits
+    coinImgs <- loadCoin
+    doorImgs <- loadDoor
+    bgImgs <- loadBackgrounds
+    playerImgs <- loadPlayers
+    baseImgs <- loadBaseTiles
+    lvlData <- loadLevels
+    lvlTitles <- loadLevelTransition ""
     lvlSubtitles <- loadLevelTransition "subtitle"
-    
     return Assets
-        { _aPlayer       = playerImgs
-        , _aKey          = (keyImg, 'k')
-        , _aDoor         = doorImgs
-        , _aBase         = last baseImgs -- TODO: Is there a better function?
-        , _aGrass        = head baseImgs -- TODO: Is there a better function?
-        , _aCoin         = coinImgs
-        , _aBgImg        = bgImgs
-        , _aTxtPause     = txtPause
-        , _aTxtEnter     = txtEnter
-        , _aTxtTitle     = txtTitle
-        , _aTxtDigits    = txtDigits
-        , _aLvlNames     = fst lvlData
-        , _aLvlFiles     = snd lvlData
-        , _aLvlTitles    = lvlTitles
+        { _aPlayer = playerImgs
+        , _aKey = (keyImg, 'k')
+        , _aDoor = doorImgs
+        , _aBase = last baseImgs -- TODO: Is there a better function?
+        , _aGrass = head baseImgs -- TODO: Is there a better function?
+        , _aCoin = coinImgs
+        , _aBgImg = bgImgs
+        , _aTxtPause = txtPause
+        , _aTxtEnter = txtEnter
+        , _aTxtCredits = txtCredits
+        , _aTxtTitle = txtTitle
+        , _aTxtDigits = txtDigits
+        , _aLvlNames = fst lvlData
+        , _aLvlFiles = snd lvlData
+        , _aLvlTitles = lvlTitles
         , _aLvlSubtitles = lvlSubtitles
         }
+
     
 
 -- ALUT
@@ -106,12 +108,14 @@ loadBaseTiles = do
     baseImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
     return baseImgs
 
-loadDoor :: IO [Picture]
+loadDoor :: IO [(Int, Picture)]
 loadDoor = do
     let dir = rootDir ++ "door/"
     let imgNames = ["door_openMid", "door_openTop", "door_closedMid", "door_closedTop"]
+    let imgKey = [0..]
     doorImgs <- mapM (loadBMP . (\n -> dir ++ n ++ ".bmp")) imgNames
-    return doorImgs
+    let doorList = zip imgKey doorImgs
+    return doorList
 
 loadTxtDigits :: IO [Picture]
 loadTxtDigits = do
@@ -190,13 +194,14 @@ getDoorSprite = do
     let doorImgs = (view (eAssets . aDoor) env)
     let (doorTopImg,doorBottomImg) = 
             case isDoorOpen of
-                True  -> case   (doorImgs ^? element 1, doorImgs ^? element 0) of
-                                (Just x, Just y)  -> (Just x, Just y)
-                                (_,_)             -> (Nothing, Nothing)       
-                False -> case   (doorImgs ^? element 3, doorImgs ^? element 2) of
-                                (Just x, Just y)  -> (Just x, Just y)     
-                                (_,_)             -> (Nothing, Nothing)   
-    return (fromJust doorTopImg, fromJust doorBottomImg)
+                True -> case (lookup 1 doorImgs, lookup 0 doorImgs) of
+                    (Just x, Just y) -> (x, y)
+                    _                -> (blank, blank)
+                False -> case (lookup 3 doorImgs, lookup 2 doorImgs) of
+                    (Just x, Just y) -> (x, y) 
+                    (Nothing,Nothing) -> (blank, blank)
+
+    return (doorTopImg, doorBottomImg)
 
 -- ALUT
 -- playSound :: SoundType -> RWSIO ()

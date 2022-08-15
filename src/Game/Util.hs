@@ -7,13 +7,18 @@ import Control.Monad.Writer
 import Game.Data.Alias
 import Game.Data.Environment
 import Game.Data.State
+import Game.Data.Asset
 
 import Graphics.Gloss
 
 logDebug :: (PureRWS m) => String -> m ()
 logDebug msg = do
+    env <- ask
     level <- use (gLevelState . lLevelName)
+    scene <- use gGameScene
     tell [show level ++ ": " ++ msg]
+    --let doorImgs = view (eAssets . aDoor) env
+    --tell ["Door image names" ++ (show doorImgs)]
 
 -- | Create a GameLevel from a text file level representation
 prepareData :: [String] -> Reader Environment GameLevel

@@ -44,7 +44,7 @@ collideWith colliders point = do
         level
     
 
-openDoor :: RWSIO Bool
+openDoor :: (PureRWS m) => m Bool
 openDoor = do
     gs <- get
     collectedKeys <- use (gPlayerState . pCollectedKeys)
@@ -82,14 +82,24 @@ checkDoor = do
                 gTransition  .= 1
                 
                 currLevel    <- use (gLevelState . lLevelName)
-                let nextLevel = flip runReader env . loadLevel . succ $ currLevel
-                gLevelState  .= nextLevel
-                
-                let lvCells   = view lLevelCells nextLevel
-                    keyType   = getKeyCellType
-                gTotalKeys   .= levelItemCount lvCells keyType
-                
-                gDoorOpen    .= False
+
+                case currLevel of
+                    Level3 -> do
+                        gGameScene .= SceneCredits
+                        logDebug $ "Game Scene updated"
+                    _      -> do
+
+                        let nextLevel = flip runReader env . loadLevel . succ $ currLevel
+
+                        gLevelState  .= nextLevel
+
+                        let lvCells   = view lLevelCells nextLevel
+                        let keyType   = getKeyCellType
+
+                        gTotalKeys   .= levelItemCount lvCells keyType
+
+                        gDoorOpen    .= False
+
         Nothing -> return ()
     
 
@@ -128,5 +138,21 @@ incKeys = do
             totalKeys <- use gTotalKeys
             logDebug $ "Collected keys " ++ show keys ++ " / " ++ show totalKeys
             return keys
-        
-    
+
+{-
+timeUp :: (PureRWS m) => m ()
+timeUp = do
+    env   <- ask
+    scene <- use gGameScene
+    timeRemaining <- use gTimeRemaining
+
+    let gameLose = (\x -> if x <= 0 then True else False) timeRemaining
+
+    case gameLose of
+        True -> do
+            gGameScene .= SceneLose
+            logDebug $ "SceneLose"
+        False -> 
+            return ()
+    return ()
+-}
