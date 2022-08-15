@@ -15,6 +15,7 @@ import Game.Init
 import Game.Logic
 
 import Graphics.Gloss
+import Graphics.Gloss.Interface.Environment
 
 renderGame :: RWSIO Picture
 renderGame = do
@@ -46,15 +47,27 @@ renderGame = do
         posSubtitle   = (-tX, -64)
         lvlTitles = view (eAssets . aLvlTitles   ) env
         lvlSubs   = view (eAssets . aLvlSubtitles) env
-        (w, h)    = (view eWindowWidth env, view eWindowHeight env)
-        lvlTitle  = if tX < -fromIntegral w then []
+        (w, h)    = (fromIntegral $ view eWindowWidth env,
+                     fromIntegral $ view eWindowHeight env)
+        lvlTitle  = if tX < -w then []
                     else case lookup levelName lvlTitles of
                         Just title -> [uncurry translate posTitle title]
                         Nothing    -> []
-        lvlSub    = if tX < -fromIntegral h then []
+        lvlSub    = if tX < -h then []
                     else case lookup levelName lvlSubs of
                         Just sub   -> [uncurry translate posSubtitle sub]
                         Nothing    -> []
+    
+    -- frame: to hide out-of-window objects, to avoid breaking the parallax
+    screenSize <- liftIO getScreenSize
+    let sW = fromIntegral . fst $ screenSize
+        sH = fromIntegral . snd $ screenSize
+        frame =
+            [ translate   0   h  . color black $ rectangleSolid sW  h
+            , translate (-w)  0  . color black $ rectangleSolid  w sH
+            , translate   w   0  . color black $ rectangleSolid  w sH
+            , translate   0 (-h) . color black $ rectangleSolid sW  h
+            ]
     
     scene <- use gGameScene
     return . pictures $ case scene of 
@@ -64,15 +77,18 @@ renderGame = do
             playerPic  ++ 
             layerFront ++
             timer      ++
-            text
+            text       ++
+            frame
         SceneStart     ->
             background ++
             playerPic  ++ 
             titlePic   ++
-            text
+            text       ++
+            frame
         SceneCredits   ->
             background ++ 
-            creditsPic
+            creditsPic {- ++
+            frame -}
         SceneLevel     ->
             if transition < 0
                 then -- put level name title and subtitle at the back
@@ -83,7 +99,8 @@ renderGame = do
                     playerPic  ++
                     layerFront ++
                     text       ++
-                    timer
+                    timer      ++
+                    frame
                 else -- put level name title and subtitle at the front
                     background ++
                     layerBack  ++
@@ -92,12 +109,15 @@ renderGame = do
                     lvlTitle   ++
                     lvlSub     ++
                     text       ++
-                    timer
+                    timer      ++
+                    frame
         SceneWin       ->
-            background
+            background ++
+            frame
         SceneLose      ->
             background ++
-            text
+            text       ++
+            frame
         
     
 
