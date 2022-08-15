@@ -167,16 +167,18 @@ renderText = do
     scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
     timeRemaining<- use gTimeRemaining
-    let continue  = view (eAssets . aTxtPause) env
+    let blink     = odd . truncate $ timeRemaining * 2
+        continue  = if blink
+            then [view (eAssets . aTxtPause) env]
+            else []
         title     = view (eAssets . aTxtTitle) env
         enter     = view (eAssets . aTxtEnter) env
-        startText = if (120 - timeRemaining) * 5 > 15
-            && (odd . truncate $ timeRemaining * 2)
+        startText = if blink && (120 - timeRemaining) * 5 > 15
             then [uncurry translate (0,-150) enter]
             else [] 
     return $
         case scene of
-            ScenePause -> [continue]
+            ScenePause -> continue
             SceneStart -> startText
             _          -> []
 
