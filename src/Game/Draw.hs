@@ -63,7 +63,8 @@ renderGame = do
             timer      ++
             text
         SceneStart     ->
-            background ++ 
+            background ++
+            playerPic  ++ 
             titlePic   ++
             text
         SceneCredits   ->
@@ -99,14 +100,11 @@ renderGame = do
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
+    env       <- ask
     gDeltaSec .= sec
-    gSec %= (+sec)
+    gSec    %= (+sec)
     
     scene <- use gGameScene
-    unless (scene == ScenePause) $ do
-        -- don't update remaining time during pause
-        timeRemaining  <- use gTimeRemaining
-        gTimeRemaining .= timeRemaining - sec
     case scene of
         ScenePause -> 
             return () -- update nothing
@@ -126,9 +124,25 @@ updateGame sec = do
             door <- openDoor
             gDoorOpen .= door
             
+            gTimeRemaining %= (+negate sec)
+            
             checkDoor
             updateParallax
             updateTransition
+        SceneStart  -> do
+            sec      <- use gSec
+            (pos, _) <- use (gPlayerState . pPosition)
+            let width = fromIntegral $ view eWindowWidth env
+                (x,y) = (width * sin (sec / 2 - pi / 2),-200)
+            gPlayerState . pPosition .= (x, y)
+            if x < pos
+                then do
+                    gPlayerState . pHeading  .= FaceLeft
+                    gPlayerState . pMovement .= MoveLeft
+                else do
+                    gPlayerState . pHeading  .= FaceRight
+                    gPlayerState . pMovement .= MoveRight
+            incPlayerSprite
         _           ->
             return ()
     get --  return GameState
