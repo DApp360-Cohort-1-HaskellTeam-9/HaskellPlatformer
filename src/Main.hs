@@ -9,6 +9,7 @@ import Game.Draw
 import Game.Init
 import Game.Input
 
+import Graphics.Gloss.Interface.Environment
 import Graphics.Gloss.Interface.IO.Game
 
 main :: IO ()
@@ -17,11 +18,15 @@ main = do
     
     -- init Environment
     env <- initEnv args
-    let windowWidth = view eWindowWidth env
-    let windowHeight = view eWindowHeight env
-    let window  = InWindow "Haskell Platformer" (windowWidth, windowHeight) (0, 0)
-    let bgColor = black
-    let fps     = view eFPS env
+    (screenWidth, screenHeight) <- getScreenSize
+    let windowWidth  = view eWindowWidth  env
+        windowHeight = view eWindowHeight env
+        x = (screenWidth  - windowWidth)  `div` 2
+        y = (screenHeight - windowHeight) `div` 2
+        -- window  = FullScreen
+        window  = InWindow "Haskell Platformer" (windowWidth, windowHeight) (x, y)
+        bgColor = black
+        fps     = view eFPS env
     
     world <- runReaderT (initState args) env
     
