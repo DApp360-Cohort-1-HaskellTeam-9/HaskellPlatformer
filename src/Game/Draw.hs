@@ -105,8 +105,6 @@ updateGame sec = do
     gSec    %= (+sec)
     
     scene <- use gGameScene
-    unless (scene == ScenePause) $
-        gTimeRemaining %= (+negate sec)
     case scene of
         ScenePause -> 
             return () -- update nothing
@@ -125,6 +123,8 @@ updateGame sec = do
             
             door <- openDoor
             gDoorOpen .= door
+            
+            gTimeRemaining %= (+negate sec)
             
             checkDoor
             updateParallax
