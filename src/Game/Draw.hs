@@ -1,6 +1,7 @@
 module Game.Draw where
 
 import Control.Lens
+import Control.Monad.Reader
 import Control.Monad.RWS
 
 import Game.Action
@@ -10,6 +11,7 @@ import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+import Game.Init
 import Game.Logic
 
 import Graphics.Gloss
@@ -130,7 +132,7 @@ updateGame sec = do
             checkDoor
             updateParallax
             updateTransition
-        SceneStart  -> do
+        SceneStart -> do
             sec      <- use gSec
             (pos, _) <- use (gPlayerState . pPosition)
             let width = fromIntegral $ view eWindowWidth env
@@ -144,7 +146,12 @@ updateGame sec = do
                     gPlayerState . pHeading  .= FaceRight
                     gPlayerState . pMovement .= MoveRight
             incPlayerSprite
-        _           ->
+        SceneCredits -> do
+            sec <- use gSec
+            when (sec > 90) $ do -- reset game after 1.5 minutes idle
+                resetGame <- liftIO $ runReaderT (initState []) env
+                put resetGame
+        _ ->
             return ()
     get --  return GameState
 
