@@ -60,6 +60,7 @@ renderGame = do
             layerBack  ++
             playerPic  ++ 
             layerFront ++
+            timer      ++
             text
         SceneStart     ->
             background ++ 
@@ -99,6 +100,7 @@ renderGame = do
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
     gDeltaSec .= sec
+    gSec %= (+sec)
     
     scene <- use gGameScene
     unless (scene == ScenePause) $ do
@@ -168,14 +170,14 @@ renderText = do
     env          <- ask
     scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
-    timeRemaining<- use gTimeRemaining
-    let blink     = odd . truncate $ timeRemaining * 2
+    sec          <- use gSec
+    let blink     = even . truncate $ sec * 2
         continue  = if blink
             then [view (eAssets . aTxtPause) env]
             else []
         title     = view (eAssets . aTxtTitle) env
         enter     = view (eAssets . aTxtEnter) env
-        startText = if blink && (120 - timeRemaining) * 5 > 15
+        startText = if blink && sec * 5 > 15
             then [uncurry translate (0,-150) enter]
             else [] 
     return $
@@ -188,9 +190,9 @@ renderText = do
 scaleTitle :: (PureRWS m) => m [Picture]
 scaleTitle = do
     env <- ask
-    timeRemaining <- use gTimeRemaining
+    sec <- use gSec
     let rate    = 5 -- Rate in which the picture scales based on ticks
-        tick    = (120 - timeRemaining) * rate 
+        tick    = sec * rate -- (120 - timeRemaining) * rate 
         title   = view (eAssets . aTxtTitle) env
         newTick = min 15 tick
         pulse   = 1 + sin (max 15 tick - 15) / 15
