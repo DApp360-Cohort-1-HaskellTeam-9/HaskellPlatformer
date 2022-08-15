@@ -17,7 +17,6 @@ logDebug msg = do
     level <- use (gLevelState . lLevelName)
     scene <- use gGameScene
     tell [show level ++ ": " ++ msg]
-    tell ["scene: " ++ show scene]
     --let doorImgs = view (eAssets . aDoor) env
     --tell ["Door image names" ++ (show doorImgs)]
 

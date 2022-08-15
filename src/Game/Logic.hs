@@ -139,7 +139,7 @@ incKeys = do
             logDebug $ "Collected keys " ++ show keys ++ " / " ++ show totalKeys
             return keys
 
-
+{-
 timeUp :: (PureRWS m) => m ()
 timeUp = do
     env   <- ask
@@ -155,3 +155,4 @@ timeUp = do
         False -> 
             return ()
     return ()
+-}

@@ -12,8 +12,6 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Logic
 
-import System.Exit
-
 import Graphics.Gloss
 
 renderGame :: RWSIO Picture
@@ -35,10 +33,10 @@ renderGame = do
     background   <- renderBackground
     text         <- renderText
     timer        <- renderTimer
+    creditsPic   <- scrollCredits
     
     -- title pictures
     titlePic     <- scaleTitle
-    creditsPic   <- scrollCredits
     levelName    <- use (gLevelState . lLevelName)
     transition   <- use gTransition
     let tX            = 256 * min 0 transition
@@ -63,9 +61,11 @@ renderGame = do
             layerBack  ++
             playerPic  ++ 
             layerFront ++
+            timer      ++
             text
         SceneStart     ->
-            background ++ 
+            background ++
+            playerPic  ++ 
             titlePic   ++
             text
         SceneCredits   ->
@@ -101,9 +101,9 @@ renderGame = do
 
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
+    env       <- ask
     gDeltaSec .= sec
-    timeRemaining  <- use gTimeRemaining
-    gTimeRemaining .= timeRemaining - sec
+    gSec    %= (+sec)
     
     scene <- use gGameScene
     case scene of
@@ -125,11 +125,25 @@ updateGame sec = do
             door <- openDoor
             gDoorOpen .= door
             
+            gTimeRemaining %= (+negate sec)
+            
             checkDoor
             updateParallax
             updateTransition
-            timeUp
-
+        SceneStart  -> do
+            sec      <- use gSec
+            (pos, _) <- use (gPlayerState . pPosition)
+            let width = fromIntegral $ view eWindowWidth env
+                (x,y) = (width * sin (sec / 2 - pi / 2),-200)
+            gPlayerState . pPosition .= (x, y)
+            if x < pos
+                then do
+                    gPlayerState . pHeading  .= FaceLeft
+                    gPlayerState . pMovement .= MoveLeft
+                else do
+                    gPlayerState . pHeading  .= FaceRight
+                    gPlayerState . pMovement .= MoveRight
+            incPlayerSprite
         _           ->
             return ()
     get --  return GameState
@@ -171,57 +185,66 @@ renderText = do
     env          <- ask
     scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
-    let continue  = view (eAssets . aTxtPause) env
-    let title     = view (eAssets . aTxtTitle) env
-    let enter     = view (eAssets . aTxtEnter) env
-    let credits   = view (eAssets . aTxtCredits) env
-    let startText = [uncurry translate (0,-200) enter] 
+    sec          <- use gSec
+    let blink     = even . truncate $ sec * 2
+        continue  = if blink
+            then [view (eAssets . aTxtPause) env]
+            else []
+        title     = view (eAssets . aTxtTitle) env
+        enter     = view (eAssets . aTxtEnter) env
+        startText = if blink && sec * 5 > 15
+            then [uncurry translate (0,-150) enter]
+            else [] 
     return $
         case scene of
-            ScenePause      -> [continue]
-            SceneStart      -> startText
-            SceneCredits    -> [credits]
-            _               -> []
+            ScenePause -> continue
+            SceneStart -> startText
+            _          -> []
 
 --Will fix up numbers 
 scaleTitle :: (PureRWS m) => m [Picture]
 scaleTitle = do
     env <- ask
-    timeRemaining <- use gTimeRemaining
-    let rate = 3 -- Rate in which the picture scales based on ticks
-    let tick = (120 - timeRemaining) / 10 * rate -- Uses seconds gone by to reduce to a value below 2 
-    let title  = view (eAssets . aTxtTitle) env
-    let newTick =  (\x -> if x >= 1.5 then 1.5 else x) tick
-    let scaleXY = newTick
-    let pic = scale scaleXY scaleXY $ uncurry translate (0,100) title
+    sec <- use gSec
+    let rate    = 5 -- Rate in which the picture scales based on ticks
+        tick    = sec * rate -- (120 - timeRemaining) * rate 
+        title   = view (eAssets . aTxtTitle) env
+        newTick = min 15 tick
+        pulse   = 1 + sin (max 15 tick - 15) / 15
+        scaleXY = pulse * newTick / 10
+        pic = scale scaleXY scaleXY $ uncurry translate (0,50) title
     return [pic]
 
 --Might need to retake the credits image as the first line is off center..
 scrollCredits :: (PureRWS m) => m [Picture]
 scrollCredits = do
     env <- ask
+    sec <- use gSec
     timeRemaining <- use gTimeRemaining
-    let credits  = view (eAssets . aTxtCredits) env
-    let rate = 20 -- Rate in which the picture scrolls based on ticks
-    let tick = (120 - timeRemaining) * rate -- Uses seconds gone by to reduce to a value below 2 
-    let pic = uncurry translate (-75,-1000+tick) credits
+    let credits = view (eAssets . aTxtCredits) env
+        rate = 20 -- Rate in which the picture scrolls based on ticks
+        tick = sec * rate -- Uses seconds gone by to reduce to a value below 2 
+        pic = uncurry translate (-75,-1200+tick) credits
     return [pic]
+
+
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
-    env   <- ask
+    env <- ask
     level <- use (gLevelState . lLevelName)
-    scene <- use (gGameScene)   
-    
-    let lvlList  = (view (eAssets . aLvlNames) env)
-        bgImgs   = view (eAssets . aBgImg   ) env
-        zipLvls  = zip lvlList bgImgs
-        imgToUse = 
+    scene <- use (gGameScene) 
+
+    let lvlList = (view (eAssets . aLvlNames) env)
+    let bgImgs = view (eAssets . aBgImg ) env
+    let zipLvls = zip lvlList bgImgs
+
+    let imgToUse = 
             case scene of 
-                SceneStart   -> lookup (show LevelStart) zipLvls
-                SceneCredits -> lookup (show LevelCredits) zipLvls
-                _            -> lookup (show level) zipLvls
-    
+                SceneStart    -> lookup (show LevelStart) zipLvls
+                SceneCredits  -> lookup (show LevelCredits) zipLvls
+                _             -> lookup (show level) zipLvls
+
     parallax <- use gParallax
     case imgToUse of
         Just bg -> return [uncurry translate parallax bg]
@@ -268,7 +291,7 @@ renderTimer = do
     return timer
 
 -- ALUT
--- playSFX :: RWSIO ()--loadDoor :: IO [(Int, Picture)]
+-- playSFX :: RWSIO ()
 -- playSFX = do
 --     player <- use (gPlayerState . pPosition)
 --     let coin = getCoinCellType

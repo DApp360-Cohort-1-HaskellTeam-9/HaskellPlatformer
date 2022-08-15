@@ -9,7 +9,6 @@ import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
 import Game.Util
-import Control.Monad.RWS
 
 import Data.Maybe
 
@@ -19,39 +18,39 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
-    txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
-    txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
-    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp"
-    txtCredits   <- loadBMP "./assets/graphics/text/credits.bmp"
-    txtDigits    <- loadTxtDigits
-    coinImgs     <- loadCoin
-    doorImgs     <- loadDoor
-    bgImgs       <- loadBackgrounds
-    playerImgs   <- loadPlayers
-    baseImgs     <- loadBaseTiles
-    lvlData      <- loadLevels
-    lvlTitles    <- loadLevelTransition ""
+    keyImg <- loadBMP "./assets/graphics/items/key.bmp"
+    txtPause <- loadBMP "./assets/graphics/text/continue.bmp" 
+    txtTitle <- loadBMP "./assets/graphics/text/title.bmp" 
+    txtEnter <- loadBMP "./assets/graphics/text/enter.bmp"
+    txtCredits <- loadBMP "./assets/graphics/text/credits.bmp"
+    txtDigits <- loadTxtDigits
+    coinImgs <- loadCoin
+    doorImgs <- loadDoor
+    bgImgs <- loadBackgrounds
+    playerImgs <- loadPlayers
+    baseImgs <- loadBaseTiles
+    lvlData <- loadLevels
+    lvlTitles <- loadLevelTransition ""
     lvlSubtitles <- loadLevelTransition "subtitle"
-    
     return Assets
-        { _aPlayer       = playerImgs
-        , _aKey          = (keyImg, 'k')
-        , _aDoor         = doorImgs
-        , _aBase         = last baseImgs -- TODO: Is there a better function?
-        , _aGrass        = head baseImgs -- TODO: Is there a better function?
-        , _aCoin         = coinImgs
-        , _aBgImg        = bgImgs
-        , _aTxtPause     = txtPause
-        , _aTxtEnter     = txtEnter
-        , _aTxtCredits   = txtCredits
-        , _aTxtTitle     = txtTitle
-        , _aTxtDigits    = txtDigits
-        , _aLvlNames     = fst lvlData
-        , _aLvlFiles     = snd lvlData
-        , _aLvlTitles    = lvlTitles
+        { _aPlayer = playerImgs
+        , _aKey = (keyImg, 'k')
+        , _aDoor = doorImgs
+        , _aBase = last baseImgs -- TODO: Is there a better function?
+        , _aGrass = head baseImgs -- TODO: Is there a better function?
+        , _aCoin = coinImgs
+        , _aBgImg = bgImgs
+        , _aTxtPause = txtPause
+        , _aTxtEnter = txtEnter
+        , _aTxtCredits = txtCredits
+        , _aTxtTitle = txtTitle
+        , _aTxtDigits = txtDigits
+        , _aLvlNames = fst lvlData
+        , _aLvlFiles = snd lvlData
+        , _aLvlTitles = lvlTitles
         , _aLvlSubtitles = lvlSubtitles
         }
+
     
 
 -- ALUT
@@ -135,7 +134,7 @@ loadBackgrounds = do
 loadLevels :: IO ([String],[String])
 loadLevels = do
     let levelDir = "./assets/levels/"
-        lvlNames = map show [Level1, Level2, Level3]
+        lvlNames = map show [Level1, Level2, Level3] --[Level1 .. Level3]
         miscLvls = map show [LevelCredits, LevelStart]
     levels <- mapM (readFile . (\n -> levelDir ++ n ++ ".txt")) lvlNames
     return (lvlNames ++ miscLvls, levels)
@@ -195,14 +194,14 @@ getDoorSprite = do
     let doorImgs = (view (eAssets . aDoor) env)
     let (doorTopImg,doorBottomImg) = 
             case isDoorOpen of
-                True  -> case   (lookup 1 doorImgs, lookup 0 doorImgs) of
-                                (Just x, Just y)  -> (x, y)
-                                _                 -> (blank, blank)
-                False -> case   (lookup 3 doorImgs, lookup 2 doorImgs) of
-                                (Just x, Just y)  -> (x, y)     
-                                (Nothing,Nothing) -> (blank, blank)
-    return (doorTopImg, doorBottomImg)
+                True -> case (lookup 1 doorImgs, lookup 0 doorImgs) of
+                    (Just x, Just y) -> (x, y)
+                    _                -> (blank, blank)
+                False -> case (lookup 3 doorImgs, lookup 2 doorImgs) of
+                    (Just x, Just y) -> (x, y) 
+                    (Nothing,Nothing) -> (blank, blank)
 
+    return (doorTopImg, doorBottomImg)
 
 -- ALUT
 -- playSound :: SoundType -> RWSIO ()
