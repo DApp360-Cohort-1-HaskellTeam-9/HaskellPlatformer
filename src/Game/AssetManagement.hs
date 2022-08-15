@@ -23,6 +23,9 @@ initAssets = do
     txtTitle <- loadBMP "./assets/graphics/text/title.bmp" 
     txtEnter <- loadBMP "./assets/graphics/text/enter.bmp"
     txtCredits <- loadBMP "./assets/graphics/text/credits.bmp"
+               -- let's use horizontal names placement:
+               -- M. McConchie        A. Popenaka        A. Putra
+               -- it's sorted alphabetically by last name :-)
     txtDigits <- loadTxtDigits
     coinImgs <- loadCoin
     doorImgs <- loadDoor

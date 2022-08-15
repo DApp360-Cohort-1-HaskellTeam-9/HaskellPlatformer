@@ -85,6 +85,7 @@ checkDoor = do
 
                 case currLevel of
                     Level3 -> do
+                        gSec       .= 0 -- reset sec
                         gGameScene .= SceneCredits
                         logDebug $ "Game Scene updated"
                     _      -> do
