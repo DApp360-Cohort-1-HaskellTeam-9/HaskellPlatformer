@@ -8,6 +8,7 @@ data GameScene
     | ScenePause
     | SceneCredits
     | SceneStart
+    deriving (Eq)
 
 -- This is for player movement logic
 data PlayerMovement

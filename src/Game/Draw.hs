@@ -99,10 +99,12 @@ renderGame = do
 updateGame :: Float -> RWSIO GameState
 updateGame sec = do
     gDeltaSec .= sec
-    timeRemaining  <- use gTimeRemaining
-    gTimeRemaining .= timeRemaining - sec
     
     scene <- use gGameScene
+    unless (scene == ScenePause) $ do
+        -- don't update remaining time during pause
+        timeRemaining  <- use gTimeRemaining
+        gTimeRemaining .= timeRemaining - sec
     case scene of
         ScenePause -> 
             return () -- update nothing
