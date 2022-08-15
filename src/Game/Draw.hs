@@ -103,10 +103,8 @@ updateGame sec = do
     gSec %= (+sec)
     
     scene <- use gGameScene
-    unless (scene == ScenePause) $ do
-        -- don't update remaining time during pause
-        timeRemaining  <- use gTimeRemaining
-        gTimeRemaining .= timeRemaining - sec
+    unless (scene == ScenePause) $
+        gTimeRemaining %= (+negate sec)
     case scene of
         ScenePause -> 
             return () -- update nothing
