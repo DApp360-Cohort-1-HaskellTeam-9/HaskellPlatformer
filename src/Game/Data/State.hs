@@ -41,7 +41,6 @@ data GameState
     , _gDoorOpen       :: Bool
     , _gTimeRemaining  :: Float  -- Time limit
     , _gDeltaSec       :: Float
-    , _gSec            :: Float
     , _gForce          :: Float
     , _gGameScene      :: GameScene
     , _gTransition     :: Float

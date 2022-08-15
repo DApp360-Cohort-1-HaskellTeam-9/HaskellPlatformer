@@ -105,7 +105,9 @@ stopMoveRight = do
 
 updateScene :: (PureRWS m) => GameScene -> m ()
 updateScene scene = do
-    gGameScene .= scene
+    gGameScene                .= scene
+    gTimeRemaining            .= 120
+    --gLevelState . lLevelName  .= Level1
 
 
 -- exitGame??
