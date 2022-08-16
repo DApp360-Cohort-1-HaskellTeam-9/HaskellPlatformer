@@ -213,6 +213,7 @@ renderText = do
     scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
     sec          <- use gSec
+
     let blink     = even . truncate $ sec * 2
         continue  = if blink
             then [view (eAssets . aTxtPause) env]
@@ -265,10 +266,9 @@ renderBackground = do
     scene <- use (gGameScene) 
 
     let lvlList = (view (eAssets . aLvlNames) env)
-    let bgImgs = view (eAssets . aBgImg ) env
-    let zipLvls = zip lvlList bgImgs
-
-    let imgToUse = 
+        bgImgs = view (eAssets . aBgImg ) env
+        zipLvls = zip lvlList bgImgs
+        imgToUse = 
             case scene of 
                 SceneStart    -> lookup (show LevelStart) zipLvls
                 SceneCredits  -> lookup (show LevelCredits) zipLvls

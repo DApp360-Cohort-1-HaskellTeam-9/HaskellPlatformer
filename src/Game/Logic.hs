@@ -87,7 +87,6 @@ checkDoor = do
                     Level3 -> do
                         gSec       .= 0 -- reset sec
                         gGameScene .= SceneCredits
-                        logDebug $ "Game Scene updated"
                     _      -> do
 
                         let nextLevel = flip runReader env . loadLevel . succ $ currLevel
