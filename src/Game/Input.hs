@@ -2,6 +2,7 @@ module Game.Input where
 
 import Control.Lens
 import Control.Monad.RWS
+import Control.Monad.Reader
 import Control.Lens
 
 import Game.AssetManagement
@@ -35,6 +36,12 @@ handleKeys e = do
                         (EventKey (SpecialKey KeyEnter) Down _ _) ->
                             updateScene SceneLevel
                         _                                         -> 
+                            return ()
+                SceneLose ->
+                    case e of
+                        (EventKey (SpecialKey KeyEnter) Down _ _) ->
+                            resetGame
+                        _                                         ->
                             return ()
                 _           -> case e of 
                                     (EventKey (SpecialKey KeyLeft) Down _ _)  -> 
@@ -112,3 +119,6 @@ updateScene scene = do
 
 
 -- exitGame??
+
+
+

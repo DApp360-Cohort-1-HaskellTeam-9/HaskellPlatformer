@@ -18,22 +18,20 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
-    keyImg <- loadBMP "./assets/graphics/items/key.bmp"
-    txtPause <- loadBMP "./assets/graphics/text/continue.bmp" 
-    txtTitle <- loadBMP "./assets/graphics/text/title.bmp" 
-    txtEnter <- loadBMP "./assets/graphics/text/enter.bmp"
-    txtCredits <- loadBMP "./assets/graphics/text/credits.bmp"
-               -- let's use horizontal names placement:
-               -- M. McConchie        A. Popenaka        A. Putra
-               -- it's sorted alphabetically by last name :-)
-    txtDigits <- loadTxtDigits
-    coinImgs <- loadCoin
-    doorImgs <- loadDoor
-    bgImgs <- loadBackgrounds
-    playerImgs <- loadPlayers
-    baseImgs <- loadBaseTiles
-    lvlData <- loadLevels
-    lvlTitles <- loadLevelTransition ""
+    keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
+    txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
+    txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
+    txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp"
+    txtCredits   <- loadBMP "./assets/graphics/text/credits.bmp"
+    txtGameover  <- loadBMP "./assets/graphics/text/gameover.bmp"
+    txtDigits    <- loadTxtDigits
+    coinImgs     <- loadCoin
+    doorImgs     <- loadDoor
+    bgImgs       <- loadBackgrounds
+    playerImgs   <- loadPlayers
+    baseImgs     <- loadBaseTiles
+    lvlData      <- loadLevels
+    lvlTitles    <- loadLevelTransition ""
     lvlSubtitles <- loadLevelTransition "subtitle"
     return Assets
         { _aPlayer = playerImgs
@@ -46,6 +44,7 @@ initAssets = do
         , _aTxtPause = txtPause
         , _aTxtEnter = txtEnter
         , _aTxtCredits = txtCredits
+        , _aTxtGameover = txtGameover
         , _aTxtTitle = txtTitle
         , _aTxtDigits = txtDigits
         , _aLvlNames = fst lvlData
@@ -198,10 +197,10 @@ getDoorSprite = do
     let (doorTopImg,doorBottomImg) = 
             case isDoorOpen of
                 True -> case (lookup 1 doorImgs, lookup 0 doorImgs) of
-                    (Just x, Just y) -> (x, y)
-                    _                -> (blank, blank)
+                    (Just x, Just y)  -> (x, y)
+                    _                 -> (blank, blank)
                 False -> case (lookup 3 doorImgs, lookup 2 doorImgs) of
-                    (Just x, Just y) -> (x, y) 
+                    (Just x, Just y)  -> (x, y) 
                     (Nothing,Nothing) -> (blank, blank)
 
     return (doorTopImg, doorBottomImg)

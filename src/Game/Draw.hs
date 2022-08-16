@@ -116,6 +116,10 @@ renderGame = do
             frame
         SceneLose      ->
             background ++
+            layerBack  ++
+            playerPic  ++ 
+            layerFront ++
+            timer      ++
             text       ++
             frame
         
@@ -149,6 +153,7 @@ updateGame sec = do
             
             gTimeRemaining %= (+negate sec)
             
+            timeUp
             checkDoor
             updateParallax
             updateTransition
@@ -169,8 +174,9 @@ updateGame sec = do
         SceneCredits -> do
             sec <- use gSec
             when (sec > 90) $ do -- reset game after 1.5 minutes idle
-                resetGame <- liftIO $ runReaderT (initState []) env
-                put resetGame
+                resetGame
+            --    resetGame <- liftIO $ runReaderT (initState []) env
+            --    put resetGame
         _ ->
             return ()
     get --  return GameState
@@ -219,6 +225,7 @@ renderText = do
             then [view (eAssets . aTxtPause) env]
             else []
         title     = view (eAssets . aTxtTitle) env
+        gameover  = [scale 0.75 0.75 $ view (eAssets . aTxtGameover) env]
         enter     = view (eAssets . aTxtEnter) env
         startText = if blink && sec * 5 > 15
             then [uncurry translate (0,-150) enter]
@@ -227,6 +234,7 @@ renderText = do
         case scene of
             ScenePause -> continue
             SceneStart -> startText
+            SceneLose  -> gameover
             _          -> []
 
 --Will fix up numbers 
@@ -240,7 +248,7 @@ scaleTitle = do
         newTick = min 15 tick
         pulse   = 1 + sin (max 15 tick - 15) / 15
         scaleXY = pulse * newTick / 10
-        pic = scale scaleXY scaleXY $ uncurry translate (0,50) title
+        pic     = scale scaleXY scaleXY $ uncurry translate (0,50) title
     return [pic]
 
 --Might need to retake the credits image as the first line is off center..
@@ -250,14 +258,11 @@ scrollCredits = do
     sec <- use gSec
     timeRemaining <- use gTimeRemaining
     let credits = view (eAssets . aTxtCredits) env
-        rate = 30 -- Rate in which the picture scrolls based on ticks
-        tick = sec * rate -- Uses seconds gone by to reduce to a value below 2 
+        rate    = 30 -- Rate in which the picture scrolls based on ticks
+        tick    = sec * rate -- Uses seconds gone by to reduce to a value below 2 
         height  = fromIntegral $ view eWindowHeight env
-        -- pic = uncurry translate (-75,-1200+tick) credits
-        pic = scale 0.75 0.75 $ uncurry translate (0, tick - height) credits
+        pic     = scale 0.75 0.75 $ uncurry translate (0, tick - height) credits
     return [pic]
-
-
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do

@@ -139,7 +139,6 @@ incKeys = do
             logDebug $ "Collected keys " ++ show keys ++ " / " ++ show totalKeys
             return keys
 
-{-
 timeUp :: (PureRWS m) => m ()
 timeUp = do
     env   <- ask
@@ -151,8 +150,16 @@ timeUp = do
     case gameLose of
         True -> do
             gGameScene .= SceneLose
-            logDebug $ "SceneLose"
-        False -> 
+            --logDebug $ "game lost"
+        False -> do
             return ()
+            --logDebug $ "continue"
     return ()
--}
+
+
+resetGame :: RWST Environment [String] GameState IO ()
+resetGame = do
+    env <- ask
+    reset <- liftIO $ runReaderT (initState []) env
+    put reset
+    return ()
