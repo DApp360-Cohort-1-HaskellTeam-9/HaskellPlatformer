@@ -250,11 +250,11 @@ scrollCredits = do
     sec <- use gSec
     timeRemaining <- use gTimeRemaining
     let credits = view (eAssets . aTxtCredits) env
-        rate = 20 -- Rate in which the picture scrolls based on ticks
+        rate = 30 -- Rate in which the picture scrolls based on ticks
         tick = sec * rate -- Uses seconds gone by to reduce to a value below 2 
         height  = fromIntegral $ view eWindowHeight env
         -- pic = uncurry translate (-75,-1200+tick) credits
-        pic = uncurry translate (-75, tick - height) credits
+        pic = scale 0.75 0.75 $ uncurry translate (0, tick - height) credits
     return [pic]
 
 
