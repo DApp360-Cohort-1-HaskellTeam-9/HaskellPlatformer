@@ -24,6 +24,7 @@ data Assets
     , _aTxtTitle     :: Picture
     , _aTxtEnter     :: Picture
     , _aTxtCredits   :: Picture
+    , _aTxtGameover  :: Picture
     , _aTxtDigits    :: [Picture]
     , _aLvlNames     :: [String] 
     , _aLvlFiles     :: [String]
