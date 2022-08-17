@@ -172,11 +172,8 @@ updateGame sec = do
                     gPlayerState . pMovement .= MoveRight
             incPlayerSprite
         SceneCredits -> do
-            sec <- use gSec
-            when (sec > 90) $ do -- reset game after 1.5 minutes idle
-                resetGame
-            --    resetGame <- liftIO $ runReaderT (initState []) env
-            --    put resetGame
+            sec <- use gSec -- reset game after 1-minute idle
+            when (sec > 60) resetGame
         _ ->
             return ()
     get --  return GameState
