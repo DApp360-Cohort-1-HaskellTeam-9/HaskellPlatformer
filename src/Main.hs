@@ -21,8 +21,8 @@ main = do
     (screenWidth, screenHeight) <- getScreenSize
     let windowWidth  = view eWindowWidth  env
         windowHeight = view eWindowHeight env
-        x = (screenWidth  - windowWidth)  `div` 2
-        y = (screenHeight - windowHeight) `div` 2
+        x = (screenWidth  - windowWidth ) `div` 2
+        y = (screenHeight - windowHeight) `div` 3
         -- window  = FullScreen
         window  = InWindow "Haskell Platformer" (windowWidth, windowHeight) (x, y)
         bgColor = black

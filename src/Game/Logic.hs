@@ -155,11 +155,3 @@ timeUp = do
             return ()
             --logDebug $ "continue"
     return ()
-
-
-resetGame :: RWST Environment [String] GameState IO ()
-resetGame = do
-    env <- ask
-    reset <- liftIO $ runReaderT (initState []) env
-    put reset
-    return ()
