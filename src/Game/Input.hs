@@ -1,9 +1,8 @@
 module Game.Input where
 
 import Control.Lens
-import Control.Monad.RWS
 import Control.Monad.Reader
-import Control.Lens
+import Control.Monad.RWS
 
 import Game.AssetManagement
 import Game.Data.Alias
@@ -20,54 +19,34 @@ import System.Exit
 handleKeys :: Event -> RWSIO GameState
 handleKeys e = do
     scene <- use gGameScene
-    heading  <- use (gPlayerState . pHeading)
-    case e of
-        (EventKey (SpecialKey KeyEsc) Up _ _) -> liftIO exitSuccess
-        (EventKey (Char 'p') Down _ _) -> do
-            pauseGame
-            case heading of
-                FaceRight -> stopMoveRight
-                FaceLeft  -> stopMoveLeft
-        _                              ->
-            case scene of
-                ScenePause -> return ()
-                SceneStart -> 
-                    case e of
-                        (EventKey (SpecialKey KeyEnter) Down _ _) ->
-                            updateScene SceneLevel
-                        _                                         -> 
-                            return ()
-                SceneLose ->
-                    case e of
-                        (EventKey (SpecialKey KeyEnter) Down _ _) ->
-                            resetGame
-                        _                                         ->
-                            return ()
-                _           -> case e of 
-                                    (EventKey (SpecialKey KeyLeft) Down _ _)  -> 
-                                        moveLeft
-                                    (EventKey (SpecialKey KeyRight) Down _ _) -> 
-                                        moveRight
-                                    (EventKey (SpecialKey KeyUp) Down _ _)    -> 
-                                        moveUp
-                                    (EventKey (SpecialKey KeyLeft) Up _ _)    -> 
-                                        stopMoveLeft
-                                    (EventKey (SpecialKey KeyRight) Up _ _)   -> 
-                                        stopMoveRight
-                                    _                                         ->
-                                        return ()
+    case (scene, e) of
+        (SceneStart  , (EventKey (SpecialKey KeyEnter) Up   _ _)) -> beginGame
+        (SceneLevel  , (EventKey (SpecialKey KeyLeft ) Down _ _)) -> moveLeft
+        (SceneLevel  , (EventKey (SpecialKey KeyRight) Down _ _)) -> moveRight
+        (SceneLevel  , (EventKey (SpecialKey KeyUp   ) Down _ _)) -> moveUp
+        (SceneLevel  , (EventKey (SpecialKey KeyLeft ) Up   _ _)) -> stopMoveLeft
+        (SceneLevel  , (EventKey (SpecialKey KeyRight) Up   _ _)) -> stopMoveRight
+        (SceneLevel  , (EventKey (Char       'p'     ) Up   _ _)) -> pauseGame
+        (ScenePause  , (EventKey (Char       'p'     ) Up   _ _)) -> unpauseGame
+        (SceneLose   , (EventKey (SpecialKey KeyEnter) Up   _ _)) -> resetGame
+        (_           , (EventKey (SpecialKey KeyEsc  ) Up   _ _)) -> liftIO exitSuccess
+        _ -> return ()
     get -- return GameState
 
-pauseGame :: (PureRWS m) => m ()
-pauseGame = do
-    scene    <- use gGameScene
+beginGame :: (PureRWS m) => m ()
+beginGame = do
+    gPlayerState .= initPlayer -- reset player
+    gGameScene   .= SceneLevel
 
-    case scene of
-        SceneLevel -> gGameScene .= ScenePause
-        ScenePause -> gGameScene .= SceneLevel
-        _          -> return ()
-        
-    return ()
+moveLeft :: (PureRWS m) => m ()
+moveLeft = do
+    gPlayerState . pMovement .= MoveLeft
+    gPlayerState . pHeading  .= FaceLeft
+
+moveRight :: (PureRWS m) => m () 
+moveRight = do
+    gPlayerState . pMovement .= MoveRight
+    gPlayerState . pHeading  .= FaceRight
 
 moveUp :: (PureRWS m) => m ()
 moveUp = do
@@ -79,22 +58,11 @@ moveUp = do
     
     hit <- collideWith colliders (x, y - tileSize)
     case hit of
-        Nothing -> return ()
-        Just _  -> do
+        Just _ -> do
             (currSpeedX, _) <- use (gPlayerState . pSpeed)
             gPlayerState . pSpeed .= (currSpeedX , 2000)
-        
+        Nothing -> return ()
     
-
-moveLeft :: (PureRWS m) => m ()
-moveLeft = do
-    gPlayerState . pMovement .= MoveLeft
-    gPlayerState . pHeading  .= FaceLeft
-
-moveRight :: (PureRWS m) => m () 
-moveRight = do
-    gPlayerState . pMovement .= MoveRight
-    gPlayerState . pHeading  .= FaceRight 
 
 stopMoveLeft :: (PureRWS m) => m () 
 stopMoveLeft = do
@@ -112,13 +80,20 @@ stopMoveRight = do
         _         -> return ()
     
 
-updateScene :: (PureRWS m) => GameScene -> m ()
-updateScene scene = do
-    gPlayerState .= initPlayer -- reset player
-    gGameScene   .= scene
+pauseGame :: (PureRWS m) => m ()
+pauseGame = do
+    gGameScene .= ScenePause
+    heading <- use (gPlayerState . pHeading)
+    case heading of
+        FaceRight -> stopMoveRight
+        FaceLeft  -> stopMoveLeft
+    
 
+unpauseGame :: (PureRWS m) => m ()
+unpauseGame = gGameScene .= SceneLevel
 
--- exitGame??
-
-
-
+resetGame :: RWSIO ()
+resetGame = do
+    env   <- ask
+    resetGame <- liftIO $ runReaderT (initState []) env
+    put resetGame

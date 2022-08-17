@@ -11,7 +11,7 @@ import Game.Data.Asset
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
-import Game.Init
+import Game.Input
 import Game.Logic
 
 import Graphics.Gloss
