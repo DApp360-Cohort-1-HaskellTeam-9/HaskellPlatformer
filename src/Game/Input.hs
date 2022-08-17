@@ -29,6 +29,7 @@ handleKeys e = do
         (SceneLevel  , (EventKey (Char       'p'     ) Up   _ _)) -> pauseGame
         (ScenePause  , (EventKey (Char       'p'     ) Up   _ _)) -> unpauseGame
         (SceneLose   , (EventKey (SpecialKey KeyEnter) Up   _ _)) -> resetGame
+        (SceneCredits, (EventKey (SpecialKey KeyEnter) Up   _ _)) -> resetGame
         (_           , (EventKey (SpecialKey KeyEsc  ) Up   _ _)) -> liftIO exitSuccess
         _ -> return ()
     get -- return GameState
