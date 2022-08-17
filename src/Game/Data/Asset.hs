@@ -23,6 +23,7 @@ data Assets
     , _aTxtPause     :: Picture
     , _aTxtTitle     :: Picture
     , _aTxtEnter     :: Picture
+    , _aTxtContinue  :: Picture
     , _aTxtCredits   :: Picture
     , _aTxtGameover  :: Picture
     , _aTxtDigits    :: [Picture]

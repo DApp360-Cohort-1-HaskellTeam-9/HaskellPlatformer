@@ -24,6 +24,7 @@ initAssets = do
     txtEnter     <- loadBMP "./assets/graphics/text/enter.bmp"
     txtCredits   <- loadBMP "./assets/graphics/text/credits.bmp"
     txtGameover  <- loadBMP "./assets/graphics/text/gameover.bmp"
+    txtContinue  <- loadBMP "./assets/graphics/text/enterContinue.bmp"
     txtDigits    <- loadTxtDigits
     coinImgs     <- loadCoin
     doorImgs     <- loadDoor
@@ -34,25 +35,25 @@ initAssets = do
     lvlTitles    <- loadLevelTransition ""
     lvlSubtitles <- loadLevelTransition "subtitle"
     return Assets
-        { _aPlayer = playerImgs
-        , _aKey = (keyImg, 'k')
-        , _aDoor = doorImgs
-        , _aBase = last baseImgs -- TODO: Is there a better function?
-        , _aGrass = head baseImgs -- TODO: Is there a better function?
-        , _aCoin = coinImgs
-        , _aBgImg = bgImgs
-        , _aTxtPause = txtPause
-        , _aTxtEnter = txtEnter
-        , _aTxtCredits = txtCredits
-        , _aTxtGameover = txtGameover
-        , _aTxtTitle = txtTitle
-        , _aTxtDigits = txtDigits
-        , _aLvlNames = fst lvlData
-        , _aLvlFiles = snd lvlData
-        , _aLvlTitles = lvlTitles
+        { _aPlayer       = playerImgs
+        , _aKey          = (keyImg, 'k')
+        , _aDoor         = doorImgs
+        , _aBase         = last baseImgs -- TODO: Is there a better function?
+        , _aGrass        = head baseImgs -- TODO: Is there a better function?
+        , _aCoin         = coinImgs
+        , _aBgImg        = bgImgs
+        , _aTxtPause     = txtPause
+        , _aTxtEnter     = txtEnter
+        , _aTxtContinue  = txtContinue
+        , _aTxtCredits   = txtCredits
+        , _aTxtGameover  = txtGameover
+        , _aTxtTitle     = txtTitle
+        , _aTxtDigits    = txtDigits
+        , _aLvlNames     = fst lvlData
+        , _aLvlFiles     = snd lvlData
+        , _aLvlTitles    = lvlTitles
         , _aLvlSubtitles = lvlSubtitles
         }
-
     
 
 -- ALUT

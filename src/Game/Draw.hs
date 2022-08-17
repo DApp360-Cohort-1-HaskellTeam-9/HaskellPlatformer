@@ -253,13 +253,19 @@ scrollCredits :: (PureRWS m) => m [Picture]
 scrollCredits = do
     env <- ask
     sec <- use gSec
-    timeRemaining <- use gTimeRemaining
-    let credits = view (eAssets . aTxtCredits) env
+    -- timeRemaining <- use gTimeRemaining
+    let credits = view (eAssets . aTxtCredits ) env
+        skipImg = view (eAssets . aTxtContinue) env
+        blink   = even . truncate $ sec * 2
         rate    = 30 -- Rate in which the picture scrolls based on ticks
         tick    = sec * rate -- Uses seconds gone by to reduce to a value below 2 
         height  = fromIntegral $ view eWindowHeight env
-        pic     = scale 0.75 0.75 $ uncurry translate (0, tick - height) credits
-    return [pic]
+        pic     = scale 0.75 0.75 $ translate   0 (tick - height) credits
+        skip    = scale 0.50 0.50 $ translate 555 (-700)          skipImg
+    return $ if sec > 25 && blink
+        then [pic, skip]
+        else [pic]
+    
 
 renderBackground :: (PureRWS m) => m [Picture]
 renderBackground = do
