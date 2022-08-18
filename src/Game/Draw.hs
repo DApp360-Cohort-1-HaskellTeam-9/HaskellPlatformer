@@ -219,16 +219,23 @@ renderText = do
     scene        <- use gGameScene
     level        <- use (gLevelState . lLevelName)
     sec          <- use gSec
-
+    
     let blink     = even . truncate $ sec * 2
         continue  = if blink
             then [view (eAssets . aTxtPause) env]
             else []
         title     = view (eAssets . aTxtTitle) env
-        gameover  = [scale 0.75 0.75 $ view (eAssets . aTxtGameover) env]
+        -- width     = fromIntegral $ view eWindowWidth  env
+        height    = fromIntegral $ view eWindowHeight env
+        -- gameover  = [scale 0.75 0.75 $ view (eAssets . aTxtGameover) env]
+        gameover  = if blink
+            then [ translate 0 ( height / 6) $ view (eAssets . aTxtGameover) env]
+            else [ translate 0 ( height / 6) $ view (eAssets . aTxtGameover) env
+                 , translate 0 (-height / 6) $ view (eAssets . aTxtContinue) env
+                 ]
         enter     = view (eAssets . aTxtEnter) env
         startText = if blink && sec * 5 > 15
-            then [uncurry translate (0,-150) enter]
+            then [translate 0 (-150) enter]
             else [] 
     return $
         case scene of
