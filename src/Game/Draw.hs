@@ -371,9 +371,15 @@ drawTimer = do
 playSFX :: RWSIO ()
 playSFX = do
     player <- use (gPlayerState . pPosition)
-    let coin = getCoinCellType
+    let life = getLifeUpCellType
+        coin = getCoinCellType
         key  = getKeyCellType
         door = getDoorCellType
+    
+    hitLife <- collideWith life player
+    case hitLife of
+        Just lf -> playSound Life
+        Nothing -> return ()
     
     hitCoin <- collideWith coin player
     case hitCoin of

@@ -40,6 +40,7 @@ makeLenses ''Assets
 data SoundType
     = Coin
     | Key
+    | Life
     | DoorOpen
     | DoorClose
     deriving (Bounded, Enum, Eq)
