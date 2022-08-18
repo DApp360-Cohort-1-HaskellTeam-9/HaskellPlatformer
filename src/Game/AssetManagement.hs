@@ -74,8 +74,8 @@ initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
         soundPath :: SoundType -> String
         soundPath Coin      = "./assets/sounds/wizzle.wav"
         soundPath Key       = "./assets/sounds/pellet.wav"
-        soundPath TimeUp    = "./assets/sounds/die.wav"
-        soundPath Hurt      = "./assets/sounds/file3.raw"
+        soundPath Hurt      = "./assets/sounds/die.wav"
+        soundPath TimeUp    = "./assets/sounds/file3.raw"
         soundPath Life      = "./assets/sounds/file1.wav"
         soundPath DoorOpen  = "./assets/sounds/file2.au"
         soundPath DoorClose = "./assets/sounds/blip.wav"
