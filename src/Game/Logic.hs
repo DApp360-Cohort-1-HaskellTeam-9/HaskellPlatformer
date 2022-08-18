@@ -157,5 +157,6 @@ timeUp = do
     when gameLose $ do
         scene <- use gGameScene
         unless (scene == SceneLose) $ do
+            logDebug "Time's up!"
             playSound TimeUp
         gGameScene .= SceneLose
