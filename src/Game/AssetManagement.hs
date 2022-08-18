@@ -18,6 +18,8 @@ import Graphics.Gloss
 
 initAssets :: IO Assets
 initAssets = do
+    heartImg     <- loadBMP "./assets/graphics/items/heartSmall.bmp"
+    heartSmall   <- scale 0.5 0.5 <$> loadBMP "./assets/graphics/items/heartSmall.bmp"
     keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
     txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
     txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
@@ -41,6 +43,8 @@ initAssets = do
         , _aBase         = last baseImgs -- TODO: Is there a better function?
         , _aGrass        = head baseImgs -- TODO: Is there a better function?
         , _aCoin         = coinImgs
+        , _aHeart        = heartImg
+        , _aHeartSmall   = heartSmall
         , _aBgImg        = bgImgs
         , _aTxtPause     = txtPause
         , _aTxtEnter     = txtEnter
@@ -219,6 +223,9 @@ getDoorSprite = do
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)
+
+getLifeUpCellType :: [CellType]
+getLifeUpCellType = "h"
 
 getCoinCellType :: [CellType]
 getCoinCellType = "c"

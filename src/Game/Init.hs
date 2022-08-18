@@ -33,7 +33,7 @@ initState args = do
         , _gLevelState    = runReader initLevel env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
-        , _gTimeRemaining = 120
+        , _gTimeRemaining = 60
         , _gDeltaSec      = 0
         , _gSec           = 0
         , _gForce         = 10 -- gravity constant for this level
@@ -53,6 +53,7 @@ initPlayer = PlayerState
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
     , _pCollectedKeys = 0
+    , _pLives         = 3
     }
 
 initLevel :: Reader Environment LevelState

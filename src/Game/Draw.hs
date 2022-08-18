@@ -16,6 +16,7 @@ import Game.Logic
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Environment
+import Data.Char
 
 renderGame :: RWSIO Picture
 renderGame = do
@@ -24,7 +25,7 @@ renderGame = do
     -- level cell/tiles pictures
     level        <- use (gLevelState . lLevelCells)
     layerBack    <- drawTiles "*tb"
-    layerFront   <- drawTiles "^kc"
+    layerFront   <- drawTiles "^kch"
     
     -- player picture
     (x, y)       <- use (gPlayerState . pPosition)
@@ -34,9 +35,10 @@ renderGame = do
     
     -- bg & text pictures
     background   <- renderBackground
-    text         <- renderText
-    timer        <- renderTimer
     creditsPic   <- scrollCredits
+    playerHUD    <- renderHUD
+    otherText    <- renderText
+    let  text    =  playerHUD ++ otherText
     
     -- title pictures
     titlePic     <- scaleTitle
@@ -76,7 +78,6 @@ renderGame = do
             layerBack  ++
             playerPic  ++ 
             layerFront ++
-            timer      ++
             text       ++
             frame
         SceneStart     ->
@@ -99,7 +100,6 @@ renderGame = do
                     playerPic  ++
                     layerFront ++
                     text       ++
-                    timer      ++
                     frame
                 else -- put level name title and subtitle at the front
                     background ++
@@ -109,7 +109,6 @@ renderGame = do
                     lvlTitle   ++
                     lvlSub     ++
                     text       ++
-                    timer      ++
                     frame
         SceneWin       ->
             background ++
@@ -119,7 +118,6 @@ renderGame = do
             layerBack  ++
             playerPic  ++ 
             layerFront ++
-            timer      ++
             text       ++
             frame
         
@@ -142,8 +140,8 @@ updateGame sec = do
             -- playSFX
             -- ENDALUT
             
-            keys <- incKeys
-            gPlayerState . pCollectedKeys .= keys
+            incKeys
+            incLives
             
             updatedLevel  <- removeItem
             gLevelState . lLevelCells .= updatedLevel
@@ -187,6 +185,7 @@ renderTile cellType = do
         coinImg  = head $ view (eAssets . aCoin) env
         keyImg   = view (eAssets . aKey  ) env
         doorImgs = view (eAssets . aDoor ) env
+        heartImg = view (eAssets . aHeart) env
     
     isDoorOpen <- use gDoorOpen
     doorTup    <- getDoorSprite
@@ -198,6 +197,7 @@ renderTile cellType = do
         'k' -> fst keyImg
         't' -> fst doorTup
         'b' -> snd doorTup
+        'h' -> heartImg
         _   -> circle 0 -- should never reach here
     
 
@@ -302,29 +302,59 @@ updateTransition = do
     sec <- use gDeltaSec
     gTransition %= (+negate sec)
 
-renderDigits :: String -> [Picture] -> [Picture]
-renderDigits [] _ = []
-renderDigits (x:xs) digits 
-            | x == '-'  = [digits !! 0]                               -- keep showing 0 when timer goes negative
-            | otherwise = digits !! read [x] : renderDigits xs digits
+renderHUD :: (PureRWS m) => m [Picture]
+renderHUD = do
+    hearts <- drawHearts
+    timer  <- drawTimer
+    return $ hearts ++ timer
 
-addShift :: [Picture] -> Float -> Float -> [Picture]
-addShift [] _ _ = []  -- 30 is width of digit picture
-addShift (x:xs) xPos yPos = (uncurry translate (xPos - fromIntegral (30 * length xs), yPos) x) : (addShift xs xPos yPos)
+drawHearts :: (PureRWS m) => m [Picture]
+drawHearts = do
+    env    <- ask
+    (x, y) <- use (gPlayerState . pPosition)
+    livesCount <- fromIntegral <$> use (gPlayerState . pLives)
+    let startX  = x - 5 * (livesCount - 1)
+        startY  = view eTileSize env
+        heart   = view (eAssets . aHeartSmall) env
+        hearts  = map  (\ l ->
+            let hX = startX + l * 10
+                hY = startY + y
+            in  translate hX hY heart) [0 .. livesCount - 1]
+    return hearts
 
-renderTimer :: (PureRWS m) => m [Picture]
-renderTimer = do
+-- renderDigits :: String -> [Picture] -> [Picture]
+-- renderDigits [] _ = []
+-- renderDigits (x:xs) digits 
+--             | x == '-'  = [digits !! 0]                               -- keep showing 0 when timer goes negative
+--             | otherwise = digits !! read [x] : renderDigits xs digits
+
+-- addShift :: [Picture] -> Float -> Float -> [Picture]
+-- addShift [] _ _ = []  -- 30 is width of digit picture
+-- addShift (x:xs) xPos yPos = (translate (xPos - fromIntegral (30 * length xs)) yPos x) : (addShift xs xPos yPos)
+
+drawTimer :: (PureRWS m) => m [Picture]
+drawTimer = do
     env <- ask
-    timeRemaining <- use gTimeRemaining
-    let timerText = show . round $ timeRemaining
-    let windowWidth = view eWindowWidth env
-    let windowHeight = view eWindowHeight env
-    let tileSize     = view eTileSize env
-    let digits = view (eAssets . aTxtDigits) env
-    let timerPics = renderDigits timerText digits
-    let xPos = fromIntegral windowWidth / 2  - tileSize / 2
-    let yPos = fromIntegral windowHeight / 2 - tileSize / 2
-    let timer = addShift timerPics xPos yPos
+    (x, y)          <- use (gPlayerState . pPosition)
+    timeRemaining   <- max 0 <$> use gTimeRemaining
+    let timerText    = show . round $ timeRemaining
+        -- windowWidth  = view eWindowWidth  env
+        -- windowHeight = view eWindowHeight env
+        tileSize     = view eTileSize env
+        fontSize     = 16
+        halfSize     = 8
+        digits       = view (eAssets . aTxtDigits) env
+        timerPics    = map ((!!) digits . (subtract $ ord '0') . ord) timerText
+        -- timerPics    = renderDigits timerText digits
+        -- xPos         = fromIntegral windowWidth  / 2 - tileSize / 2
+        -- yPos         = fromIntegral windowHeight / 2 - tileSize / 2
+        startX       = x - halfSize * fromIntegral (length timerText - 1)
+        startY       = y + fontSize + tileSize
+        timer        = map (\ (p, i) ->
+            let tX = startX + i * fontSize
+                tY = startY
+            in  translate tX tY $ scale 0.5 0.5 p) $
+            zip timerPics [0..]
     return timer
 
 -- ALUT

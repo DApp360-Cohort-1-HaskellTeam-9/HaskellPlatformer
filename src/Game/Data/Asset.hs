@@ -17,7 +17,9 @@ data Assets
     , _aKey          :: (Picture, CellType)  -- collect keys instead of food
     , _aDoor         :: [(Int, Picture)] -- locked | unlocked by collecting all keys
     , _aBase         :: Picture
-    , _aGrass        :: Picture 
+    , _aGrass        :: Picture
+    , _aHeart        :: Picture
+    , _aHeartSmall   :: Picture
     , _aCoin         :: [Picture] -- Spinning coin sprites?
     , _aBgImg        :: [Picture] -- different bg image for each level?
     , _aTxtPause     :: Picture

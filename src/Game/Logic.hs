@@ -18,8 +18,10 @@ import Graphics.Gloss
 removeItem :: (PureRWS m) => m GameLevel
 removeItem = do
     env <- ask
-    let tileSize = view eTileSize env
-    let itemTiles = getCoinCellType ++ getKeyCellType
+    let tileSize  = view eTileSize env
+    let itemTiles = getCoinCellType ++
+                    getKeyCellType  ++
+                    getLifeUpCellType
     
     currentLv <- use (gLevelState . lLevelCells)
     playerPos <- use (gPlayerState . pPosition)
@@ -77,30 +79,27 @@ checkDoor = do
             when isDoorOpen $ do
                 env <- ask
                 
+                currLives    <- use (gPlayerState . pLives)
                 gPlayerState .= initPlayer
-                gParallax     .= (0, 0)
+                gPlayerState .  pLives  .= currLives -- restore life count
+                
+                gParallax    .= (0, 0)
                 gTransition  .= 1
                 
                 currLevel    <- use (gLevelState . lLevelName)
-
                 case currLevel of
                     Level3 -> do
                         gSec       .= 0 -- reset sec
                         gGameScene .= SceneCredits
                     _      -> do
-
                         let nextLevel = flip runReader env . loadLevel . succ $ currLevel
-
                         gLevelState  .= nextLevel
-
+                        
                         let lvCells   = view lLevelCells nextLevel
-                        let keyType   = getKeyCellType
-
+                            keyType   = getKeyCellType
                         gTotalKeys   .= levelItemCount lvCells keyType
-
                         gDoorOpen    .= False
-
-        Nothing -> return ()
+        _ -> return ()
     
 
 -- incCoin :: RWST Environment [String] GameState IO Int
@@ -120,7 +119,7 @@ checkDoor = do
 --             return 1
         
 
-incKeys :: (PureRWS m) => m Int
+incKeys :: (PureRWS m) => m ()
 incKeys = do
     env           <- ask
     playerPos     <- use (gPlayerState . pPosition     )
@@ -128,16 +127,28 @@ incKeys = do
     
     let keyCell = getKeyCellType -- view (eSprites . aKey) env
     keyFound <- collideWith keyCell playerPos
-
-
+    
     case keyFound of
-        Nothing -> do
-            return collectedKeys
         Just _  -> do
             let keys   = collectedKeys + 1
             totalKeys <- use gTotalKeys
             logDebug $ "Collected keys " ++ show keys ++ " / " ++ show totalKeys
-            return keys
+            gPlayerState . pCollectedKeys .= keys
+        Nothing -> do
+            return ()
+        
+    
+
+incLives :: (PureRWS m) => m ()
+incLives = do
+    env <- ask
+    playerPos   <- use (gPlayerState . pPosition)
+    playerLives <- use (gPlayerState . pLives)
+    getLife     <- collideWith getLifeUpCellType playerPos
+    case getLife of
+        Just _  -> gPlayerState . pLives %= (+1)
+        Nothing -> return ()
+    
 
 timeUp :: (PureRWS m) => m ()
 timeUp = do

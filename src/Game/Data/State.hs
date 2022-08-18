@@ -23,6 +23,7 @@ data PlayerState
     , _pHeading        :: PlayerFacing
     , _pSpriteIndex    :: Float -- increment this using sec :: Float
     , _pCollectedKeys  :: Int
+    , _pLives          :: Int
     }
 makeLenses ''PlayerState
 
