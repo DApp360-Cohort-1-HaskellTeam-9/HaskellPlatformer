@@ -40,6 +40,8 @@ makeLenses ''Assets
 data SoundType
     = Coin
     | Key
+    | TimeUp
+    | Hurt
     | Life
     | DoorOpen
     | DoorClose

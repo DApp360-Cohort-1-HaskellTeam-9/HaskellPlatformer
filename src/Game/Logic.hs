@@ -150,19 +150,12 @@ incLives = do
         Nothing -> return ()
     
 
-timeUp :: (PureRWS m) => m ()
+timeUp :: RWSIO ()
 timeUp = do
-    env   <- ask
-    scene <- use gGameScene
-    timeRemaining <- use gTimeRemaining
-
-    let gameLose = (\x -> if x <= 0 then True else False) timeRemaining
-
-    case gameLose of
-        True -> do
-            gGameScene .= SceneLose
-            --logDebug $ "game lost"
-        False -> do
-            return ()
-            --logDebug $ "continue"
-    return ()
+    env <- ask
+    gameLose <-(<0) <$> use gTimeRemaining
+    when gameLose $ do
+        scene <- use gGameScene
+        unless (scene == SceneLose) $ do
+            playSound TimeUp
+        gGameScene .= SceneLose
