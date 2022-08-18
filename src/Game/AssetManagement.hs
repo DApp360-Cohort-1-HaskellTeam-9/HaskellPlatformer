@@ -14,10 +14,12 @@ import Data.Maybe
 
 import Graphics.Gloss
 
---import Sound.ALUT as Sound
+import Sound.ALUT as Sound
 
 initAssets :: IO Assets
 initAssets = do
+    heartImg     <- loadBMP "./assets/graphics/items/heartSmall.bmp"
+    heartSmall   <- scale 0.5 0.5 <$> loadBMP "./assets/graphics/items/heartSmall.bmp"
     keyImg       <- loadBMP "./assets/graphics/items/key.bmp"
     txtPause     <- loadBMP "./assets/graphics/text/continue.bmp" 
     txtTitle     <- loadBMP "./assets/graphics/text/title.bmp" 
@@ -41,6 +43,8 @@ initAssets = do
         , _aBase         = last baseImgs -- TODO: Is there a better function?
         , _aGrass        = head baseImgs -- TODO: Is there a better function?
         , _aCoin         = coinImgs
+        , _aHeart        = heartImg
+        , _aHeartSmall   = heartSmall
         , _aBgImg        = bgImgs
         , _aTxtPause     = txtPause
         , _aTxtEnter     = txtEnter
@@ -57,34 +61,34 @@ initAssets = do
     
 
 -- ALUT
--- initSound :: IO SoundInfo
--- initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
---     Just device    <- openDevice Nothing
---     Just context   <- createContext device []
---     currentContext $= Just context
+initSound :: IO SoundInfo
+initSound = withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+    Just device    <- openDevice Nothing
+    Just context   <- createContext device []
+    currentContext $= Just context
     
---     let -- Credits to: dixonary / hake
---         soundTypes :: [SoundType]
---         soundTypes = [minBound..maxBound]
+    let -- Credits to: dixonary / hake
+        soundTypes :: [SoundType]
+        soundTypes = [minBound..maxBound]
         
---         soundPath :: SoundType -> String
---         soundPath Coin      = "./assets/sounds/wizzle.wav"
---         soundPath Key       = "./assets/sounds/pellet.wav"
---         soundPath DoorOpen  = "./assets/sounds/file2.au"
---         soundPath DoorClose = "./assets/sounds/blip.wav"
+        soundPath :: SoundType -> String
+        soundPath Coin      = "./assets/sounds/wizzle.wav"
+        soundPath Key       = "./assets/sounds/pellet.wav"
+        soundPath DoorOpen  = "./assets/sounds/file2.au"
+        soundPath DoorClose = "./assets/sounds/blip.wav"
         
---         -- Generate buffer queue for each sound.
---         loadBuffer s = do
---             buf   <- createBuffer $ File $ soundPath s
---             [src] <- genObjectNames 1
---             queueBuffers src [buf]
---             return (s, src)
+        -- Generate buffer queue for each sound.
+        loadBuffer s = do
+            buf   <- createBuffer $ File $ soundPath s
+            [src] <- genObjectNames 1
+            queueBuffers src [buf]
+            return (s, src)
     
---     -- Run loadBuffer for each soundFile.
---     sounds <- forM soundTypes loadBuffer
+    -- Run loadBuffer for each soundFile.
+    sounds <- forM soundTypes loadBuffer
     
---     -- Construct our stateful SoundInfo.
---     return $ SoundInfo device context sounds
+    -- Construct our stateful SoundInfo.
+    return $ SoundInfo device context sounds
 -- ENDALUT
 
 rootDir :: String
@@ -207,18 +211,21 @@ getDoorSprite = do
     return (doorTopImg, doorBottomImg)
 
 -- ALUT
--- playSound :: SoundType -> RWSIO ()
--- playSound s = do
---     env <- ask
---     let soundContext = view (eSounds . sContext) env
---     let soundSources = view (eSounds . sSources) env
---     withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
---         currentContext $= Just soundContext
---         Sound.play . maybeToList $ lookup s soundSources
+playSound :: SoundType -> RWSIO ()
+playSound s = do
+    env <- ask
+    let soundContext = view (eSounds . sContext) env
+    let soundSources = view (eSounds . sSources) env
+    withProgNameAndArgs runALUTUsingCurrentContext $ \ _ _ -> do
+        currentContext $= Just soundContext
+        Sound.play . maybeToList $ lookup s soundSources
 -- ENDALUT
 
 getCollidables :: [CellType] -- this is a list of collidables cell types
 getCollidables = "*^" -- open to suggestions to improve this function :)
+
+getLifeUpCellType :: [CellType]
+getLifeUpCellType = "h"
 
 getCoinCellType :: [CellType]
 getCoinCellType = "c"

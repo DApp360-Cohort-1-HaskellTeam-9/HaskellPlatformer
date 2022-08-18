@@ -9,7 +9,7 @@ import Game.Data.State
 
 import Graphics.Gloss
 
--- import Sound.ALUT as Sound
+import Sound.ALUT as Sound
 
 data Assets
     = Assets -- Use Assets instead of Sprites?
@@ -17,7 +17,9 @@ data Assets
     , _aKey          :: (Picture, CellType)  -- collect keys instead of food
     , _aDoor         :: [(Int, Picture)] -- locked | unlocked by collecting all keys
     , _aBase         :: Picture
-    , _aGrass        :: Picture 
+    , _aGrass        :: Picture
+    , _aHeart        :: Picture
+    , _aHeartSmall   :: Picture
     , _aCoin         :: [Picture] -- Spinning coin sprites?
     , _aBgImg        :: [Picture] -- different bg image for each level?
     , _aTxtPause     :: Picture
@@ -42,11 +44,11 @@ data SoundType
     | DoorClose
     deriving (Bounded, Enum, Eq)
 -- ALUT
--- data SoundInfo
---     = SoundInfo
---     { _sDevice  :: Sound.Device
---     , _sContext :: Sound.Context
---     , _sSources :: [(SoundType, Sound.Source)]
---     }
--- makeLenses ''SoundInfo
+data SoundInfo
+    = SoundInfo
+    { _sDevice  :: Sound.Device
+    , _sContext :: Sound.Context
+    , _sSources :: [(SoundType, Sound.Source)]
+    }
+makeLenses ''SoundInfo
 -- ENDALUT
