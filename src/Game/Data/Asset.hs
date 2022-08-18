@@ -9,7 +9,7 @@ import Game.Data.State
 
 import Graphics.Gloss
 
--- import Sound.ALUT as Sound
+import Sound.ALUT as Sound
 
 data Assets
     = Assets -- Use Assets instead of Sprites?
@@ -44,11 +44,11 @@ data SoundType
     | DoorClose
     deriving (Bounded, Enum, Eq)
 -- ALUT
--- data SoundInfo
---     = SoundInfo
---     { _sDevice  :: Sound.Device
---     , _sContext :: Sound.Context
---     , _sSources :: [(SoundType, Sound.Source)]
---     }
--- makeLenses ''SoundInfo
+data SoundInfo
+    = SoundInfo
+    { _sDevice  :: Sound.Device
+    , _sContext :: Sound.Context
+    , _sSources :: [(SoundType, Sound.Source)]
+    }
+makeLenses ''SoundInfo
 -- ENDALUT

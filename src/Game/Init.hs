@@ -11,17 +11,16 @@ initEnv :: [String] -> IO Environment
 initEnv args = do
     assets <- initAssets
     -- ALUT
-    -- sounds <- initSound
+    sounds <- initSound
     -- ENDALUT
     return Environment
         { _eTileSize = 32
         , _eWindowWidth = 1024
         , _eWindowHeight = 768
         , _eFPS      = 360
-        --, _eSounds  = sounds
         , _eAssets = assets
         -- ALUT
-        -- , _eSounds  = sounds
+        , _eSounds  = sounds
         -- ENDALUT
         }
 

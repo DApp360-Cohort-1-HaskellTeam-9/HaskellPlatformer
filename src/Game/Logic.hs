@@ -46,7 +46,7 @@ collideWith colliders point = do
         level
     
 
-openDoor :: (PureRWS m) => m Bool
+openDoor :: RWSIO Bool
 openDoor = do
     gs <- get
     collectedKeys <- use (gPlayerState . pCollectedKeys)
@@ -60,7 +60,7 @@ openDoor = do
                 when (totalKeys > 0) $
                     logDebug "Opening the door"
                 -- ALUT
-                -- playSound DoorOpen
+                playSound DoorOpen
                 -- ENDALUT
             return True
         else do
@@ -102,7 +102,7 @@ checkDoor = do
         _ -> return ()
     
 
--- incCoin :: RWST Environment [String] GameState IO Int
+-- incCoin :: RWSIO Int
 -- incCoin = do
 --     env       <- ask
 --     playerPos <- use (gPlayerState . pPosition)
