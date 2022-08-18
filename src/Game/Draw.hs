@@ -4,6 +4,8 @@ import Control.Lens
 import Control.Monad.Reader
 import Control.Monad.RWS
 
+import Data.Char
+
 import Game.Action
 import Game.AssetManagement
 import Game.Data.Alias
@@ -16,7 +18,6 @@ import Game.Logic
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Environment
-import Data.Char
 
 renderGame :: RWSIO Picture
 renderGame = do
