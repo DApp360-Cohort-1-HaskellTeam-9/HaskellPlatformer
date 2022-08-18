@@ -37,8 +37,7 @@ renderGame = do
     background   <- renderBackground
     creditsPic   <- scrollCredits
     playerHUD    <- renderHUD
-    otherText    <- renderText
-    let  text    =  playerHUD ++ otherText
+    text         <- renderText
     
     -- title pictures
     titlePic     <- scaleTitle
@@ -78,6 +77,7 @@ renderGame = do
             layerBack  ++
             playerPic  ++ 
             layerFront ++
+            playerHUD  ++
             text       ++
             frame
         SceneStart     ->
@@ -99,6 +99,7 @@ renderGame = do
                     layerBack  ++
                     playerPic  ++
                     layerFront ++
+                    playerHUD  ++
                     text       ++
                     frame
                 else -- put level name title and subtitle at the front
@@ -108,6 +109,7 @@ renderGame = do
                     layerFront ++
                     lvlTitle   ++
                     lvlSub     ++
+                    playerHUD  ++
                     text       ++
                     frame
         SceneWin       ->
@@ -118,6 +120,7 @@ renderGame = do
             layerBack  ++
             playerPic  ++ 
             layerFront ++
+            playerHUD  ++
             text       ++
             frame
         
@@ -337,7 +340,7 @@ drawTimer = do
     env <- ask
     (x, y)          <- use (gPlayerState . pPosition)
     timeRemaining   <- max 0 <$> use gTimeRemaining
-    let timerText    = show . round $ timeRemaining
+    let timerText    = show $ ceiling timeRemaining
         -- windowWidth  = view eWindowWidth  env
         -- windowHeight = view eWindowHeight env
         tileSize     = view eTileSize env
