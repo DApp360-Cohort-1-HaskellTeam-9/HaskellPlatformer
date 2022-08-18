@@ -11,6 +11,7 @@ import Game.Data.Environment
 import Game.Data.State
 import Game.Init
 import Game.Logic
+import Game.Util
 
 import Graphics.Gloss.Interface.IO.Game
 
@@ -30,12 +31,13 @@ handleKeys e = do
         (ScenePause  , (EventKey (Char       'p'     ) Up   _ _)) -> unpauseGame
         (SceneLose   , (EventKey (SpecialKey KeyEnter) Up   _ _)) -> resetGame
         (SceneCredits, (EventKey (SpecialKey KeyEnter) Up   _ _)) -> resetGame
-        (_           , (EventKey (SpecialKey KeyEsc  ) Up   _ _)) -> liftIO exitSuccess
+        (_           , (EventKey (SpecialKey KeyEsc  ) Up   _ _)) -> quitGame
         _ -> return ()
     get -- return GameState
 
 beginGame :: (PureRWS m) => m ()
 beginGame = do
+    -- logDebug "Starting game.."
     gPlayerState .= initPlayer -- reset player
     gGameScene   .= SceneLevel
 
@@ -98,3 +100,8 @@ resetGame = do
     env   <- ask
     resetGame <- liftIO $ runReaderT (initState []) env
     put resetGame
+
+quitGame :: RWSIO ()
+quitGame = do
+    -- logDebug "Goodbye"
+    liftIO exitSuccess
