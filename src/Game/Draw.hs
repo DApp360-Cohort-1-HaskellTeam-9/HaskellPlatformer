@@ -26,7 +26,7 @@ renderGame = do
     -- level cell/tiles pictures
     level        <- use (gLevelState . lLevelCells)
     layerBack    <- drawTiles "*tb"
-    layerFront   <- drawTiles "^kch"
+    layerFront   <- drawTiles "^kchNSWE"
     
     -- player picture
     (x, y)       <- use (gPlayerState . pPosition)
@@ -156,6 +156,7 @@ updateGame sec = do
             gTimeRemaining %= (+negate sec)
             
             timeUp
+            checkSpikes
             checkDoor
             updateParallax
             updateTransition
@@ -184,12 +185,13 @@ updateGame sec = do
 renderTile :: (PureRWS m) => CellType -> m Picture
 renderTile cellType = do
     env <- ask
-    let baseImg  = view (eAssets . aBase ) env
-        grassImg = view (eAssets . aGrass) env
+    let baseImg  = view (eAssets . aBase  ) env
+        grassImg = view (eAssets . aGrass ) env
         coinImg  = head $ view (eAssets . aCoin) env
-        keyImg   = view (eAssets . aKey  ) env
-        doorImgs = view (eAssets . aDoor ) env
-        heartImg = view (eAssets . aHeart) env
+        keyImg   = view (eAssets . aKey   ) env
+        doorImgs = view (eAssets . aDoor  ) env
+        heartImg = view (eAssets . aHeart ) env
+        spikes   = view (eAssets . aSpikes) env
     
     isDoorOpen <- use gDoorOpen
     doorTup    <- getDoorSprite
@@ -202,6 +204,10 @@ renderTile cellType = do
         't' -> fst doorTup
         'b' -> snd doorTup
         'h' -> heartImg
+        'N' -> spikes
+        'S' -> rotate 180 spikes
+        'W' -> rotate 270 spikes
+        'E' -> rotate 90 spikes
         _   -> circle 0 -- should never reach here
     
 

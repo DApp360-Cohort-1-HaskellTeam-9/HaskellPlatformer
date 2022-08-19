@@ -79,9 +79,7 @@ checkDoor = do
             when isDoorOpen $ do
                 env <- ask
                 
-                currLives    <- use (gPlayerState . pLives)
-                gPlayerState .= initPlayer
-                gPlayerState .  pLives  .= currLives -- restore life count
+                resetPlayer
                 
                 gParallax    .= (0, 0)
                 gTransition  .= 1
@@ -99,6 +97,25 @@ checkDoor = do
                             keyType   = getKeyCellType
                         gTotalKeys   .= levelItemCount lvCells keyType
                         gDoorOpen    .= False
+        _ -> return ()
+    
+
+checkSpikes :: RWSIO ()
+checkSpikes = do
+    let spikes = getSpikesCellType
+    player    <- use (gPlayerState . pPosition)
+    hitSpikes <- collideWith spikes player
+    case hitSpikes of
+        Just _ -> do
+            lives <- use (gPlayerState . pLives)
+            case lives of
+                1 -> do
+                    playSound TimeUp
+                    gGameScene .= SceneLose
+                _ -> do
+                    playSound Hurt
+                    resetPlayer
+            gPlayerState . pLives %= pred -- reduce a life
         _ -> return ()
     
 
@@ -160,3 +177,10 @@ timeUp = do
             logDebug "Time's up!"
             playSound TimeUp
         gGameScene .= SceneLose
+    
+
+resetPlayer :: (PureRWS m) => m ()
+resetPlayer = do
+    currLives    <- use (gPlayerState . pLives)
+    gPlayerState .= initPlayer
+    gPlayerState .  pLives  .= currLives -- restore life count

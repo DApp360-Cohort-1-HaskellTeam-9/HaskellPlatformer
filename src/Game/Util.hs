@@ -7,7 +7,6 @@ import Control.Monad.Writer
 import Game.Data.Alias
 import Game.Data.Environment
 import Game.Data.State
-import Game.Data.Asset
 
 import Graphics.Gloss
 
@@ -38,12 +37,13 @@ makeRow (c:cs) rowNumber
     | c == '.'  = makeRow cs rowNumber  --- ^ Skip empty cell
     | otherwise = do
         env <- ask
-        let windowWidth  = view eWindowWidth env
-        let windowHeight = view eWindowHeight env
-        let tileSize     = view eTileSize env
-        let colNumber = length cs    --- ^ Column number is counted from right to left
-        let xPos = fromIntegral windowWidth / 2  - tileSize / 2 - fromIntegral colNumber * tileSize
-        let yPos = fromIntegral windowHeight / 2 - tileSize / 2 - fromIntegral rowNumber * tileSize
+        let (w, h) = (fromIntegral $ view eWindowWidth  env
+                     ,fromIntegral $ view eWindowHeight env)
+            row    = fromIntegral $ rowNumber
+            col    = fromIntegral $ length cs --- ^ Column number is counted from right to left
+            tile   = view eTileSize env
+            xPos   = w / 2 - tile / 2 - col * tile
+            yPos   = h / 2 - tile / 2 - row * tile
         return $ ((xPos, yPos), c) : runReader (makeRow cs rowNumber) env
     
 
