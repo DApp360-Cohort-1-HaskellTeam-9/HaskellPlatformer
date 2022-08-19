@@ -107,6 +107,7 @@ checkSpikes = do
     hitSpikes <- collideWith spikes player
     case hitSpikes of
         Just _ -> do
+            keys  <- use (gPlayerState . pCollectedKeys)
             lives <- use (gPlayerState . pLives)
             case lives of
                 1 -> do
@@ -116,6 +117,7 @@ checkSpikes = do
                     playSound Hurt
                     resetPlayer
             gPlayerState . pLives %= pred -- reduce a life
+            gPlayerState . pCollectedKeys .= keys -- restore keys
         _ -> return ()
     
 
@@ -182,7 +184,5 @@ timeUp = do
 resetPlayer :: (PureRWS m) => m ()
 resetPlayer = do
     currLives     <- use (gPlayerState . pLives)
-    collectedKeys <- use (gPlayerState . pCollectedKeys)
     gPlayerState  .= initPlayer
-    gPlayerState  .  pCollectedKeys .= collectedKeys -- restore keys
-    gPlayerState  .  pLives .= currLives             -- restore lives
+    gPlayerState  .  pLives .= currLives -- restore lives
