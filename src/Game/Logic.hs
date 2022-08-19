@@ -181,6 +181,8 @@ timeUp = do
 
 resetPlayer :: (PureRWS m) => m ()
 resetPlayer = do
-    currLives    <- use (gPlayerState . pLives)
-    gPlayerState .= initPlayer
-    gPlayerState .  pLives  .= currLives -- restore life count
+    currLives     <- use (gPlayerState . pLives)
+    collectedKeys <- use (gPlayerState . pCollectedKeys)
+    gPlayerState  .= initPlayer
+    gPlayerState  .  pCollectedKeys .= collectedKeys -- restore keys
+    gPlayerState  .  pLives .= currLives             -- restore lives
