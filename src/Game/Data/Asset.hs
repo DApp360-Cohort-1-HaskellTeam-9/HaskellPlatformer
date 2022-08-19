@@ -20,6 +20,7 @@ data Assets
     , _aGrass        :: Picture
     , _aHeart        :: Picture
     , _aHeartSmall   :: Picture
+    , _aSpikes       :: Picture
     , _aCoin         :: [Picture] -- Spinning coin sprites?
     , _aBgImg        :: [Picture] -- different bg image for each level?
     , _aTxtPause     :: Picture
