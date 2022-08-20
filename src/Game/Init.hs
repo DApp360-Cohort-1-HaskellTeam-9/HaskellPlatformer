@@ -37,7 +37,7 @@ initState args = do
         , _gLevelState    = runReader initLevel env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
-        , _gTimeRemaining = 60
+        , _gTimeRemaining = 120
         , _gDeltaSec      = 0
         , _gSec           = 0
         , _gForce         = 10 -- gravity constant for this level
@@ -65,7 +65,7 @@ initEnemies = do
     level <- use (gLevelState . lLevelCells)
     let enemyCells = filter ((`elem` getEnemyCellType) . snd) level
     enemies <- forM enemyCells (\ (pos,_) -> do
-        rng <- randomRIO (1 :: Int, 4)
+        rng <- randomRIO (4 :: Int, 7)
         return EnemyState
             { _ePosition    = pos
             , _eSpeed       = (0, 0)
