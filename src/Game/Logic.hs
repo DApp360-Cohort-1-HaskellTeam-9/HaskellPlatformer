@@ -68,7 +68,7 @@ openDoor = do
         
     
 
-checkDoor :: (PureRWS m) => m ()
+checkDoor :: RWSIO ()
 checkDoor = do
     let door = getDoorCellType
     player  <- use (gPlayerState . pPosition)
@@ -97,6 +97,8 @@ checkDoor = do
                             keyType   = getKeyCellType
                         gTotalKeys   .= levelItemCount lvCells keyType
                         gDoorOpen    .= False
+                        enemies      <- initEnemies
+                        gEnemies     .= enemies -- reload enemies
         _ -> return ()
     
 
@@ -119,6 +121,31 @@ checkSpikes = do
             gPlayerState . pLives %= pred -- reduce a life
             gPlayerState . pCollectedKeys .= keys -- restore keys
         _ -> return ()
+    
+
+checkEnemies :: RWSIO ()
+checkEnemies = do
+    enemies <- use gEnemies
+    forM_ enemies checkHitPlayer
+
+checkHitPlayer :: EnemyState -> RWSIO ()
+checkHitPlayer enemyState = do
+    env    <- ask
+    player <- use (gPlayerState . pPosition)
+    let enemy = view ePosition enemyState
+        tile  = view eTileSize env
+    when (isHit player enemy tile) $ do
+        keys  <- use (gPlayerState . pCollectedKeys)
+        lives <- use (gPlayerState . pLives)
+        case lives of
+            1 -> do
+                playSound TimeUp
+                gGameScene .= SceneLose
+            _ -> do
+                playSound Hurt
+                resetPlayer
+        gPlayerState . pLives %= pred -- reduce a life
+        gPlayerState . pCollectedKeys .= keys -- restore keys
     
 
 -- incCoin :: RWSIO Int
@@ -183,6 +210,6 @@ timeUp = do
 
 resetPlayer :: (PureRWS m) => m ()
 resetPlayer = do
-    currLives     <- use (gPlayerState . pLives)
-    gPlayerState  .= initPlayer
-    gPlayerState  .  pLives .= currLives -- restore lives
+    currLives    <- use (gPlayerState . pLives)
+    gPlayerState .= initPlayer
+    gPlayerState .  pLives .= currLives -- restore lives
