@@ -37,8 +37,8 @@ handleKeys e = do
 
 beginGame :: RWSIO ()
 beginGame = do
-    gGameScene   .= SceneLevel
-    gPlayerState .= initPlayer -- reset player
+    gGameScene .= SceneLevel
+    resetPlayer -- init player
     
     enemies  <- initEnemies
     gEnemies .= enemies -- spawn enemies

@@ -78,13 +78,7 @@ checkDoor = do
             isDoorOpen <- use gDoorOpen
             when isDoorOpen $ do
                 env <- ask
-                
-                resetPlayer
-                
-                gParallax    .= (0, 0)
-                gTransition  .= 1
-                
-                currLevel    <- use (gLevelState . lLevelName)
+                currLevel <- use (gLevelState . lLevelName)
                 case currLevel of
                     Level3 -> do
                         gSec       .= 0 -- reset sec
@@ -97,8 +91,14 @@ checkDoor = do
                             keyType   = getKeyCellType
                         gTotalKeys   .= levelItemCount lvCells keyType
                         gDoorOpen    .= False
+                        
                         enemies      <- initEnemies
                         gEnemies     .= enemies -- reload enemies
+                        
+                        resetPlayer
+                        
+                        gParallax    .= (0, 0)
+                        gTransition  .= 1
         _ -> return ()
     
 
@@ -211,5 +211,8 @@ timeUp = do
 resetPlayer :: (PureRWS m) => m ()
 resetPlayer = do
     currLives    <- use (gPlayerState . pLives)
+    level        <- use (gLevelState . lLevelCells)
+    let spawnLoc  = fst . head $ filter ((=='P') . snd) level
     gPlayerState .= initPlayer
-    gPlayerState .  pLives .= currLives -- restore lives
+    gPlayerState . pPosition .= spawnLoc
+    gPlayerState .  pLives   .= currLives -- restore lives
