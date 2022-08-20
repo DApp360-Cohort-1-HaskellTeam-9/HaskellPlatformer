@@ -16,8 +16,8 @@ data PlayerMovement
     | MoveLeft
     | MoveRight
 
--- This is for player sprite drawing
-data PlayerFacing
+-- This is for character sprite drawing
+data CharacterFacing
     = FaceLeft
     | FaceRight
 

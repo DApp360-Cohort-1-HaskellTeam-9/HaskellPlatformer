@@ -35,11 +35,13 @@ handleKeys e = do
         _ -> return ()
     get -- return GameState
 
-beginGame :: (PureRWS m) => m ()
+beginGame :: RWSIO ()
 beginGame = do
-    -- logDebug "Starting game.."
-    gPlayerState .= initPlayer -- reset player
     gGameScene   .= SceneLevel
+    gPlayerState .= initPlayer -- reset player
+    
+    enemies  <- initEnemies
+    gEnemies .= enemies -- spawn enemies
 
 moveLeft :: (PureRWS m) => m ()
 moveLeft = do

@@ -74,6 +74,7 @@ executable HaskellPlatformer
                  ,    gloss
                  ,    lens
                  ,    mtl
+                 ,    random
                  ,    ALUT
 
     -- Directories containing source files.
@@ -81,3 +82,5 @@ executable HaskellPlatformer
 
     -- Base language which the package is written in.
     default-language: Haskell2010
+
+    ghc-options:      -O2

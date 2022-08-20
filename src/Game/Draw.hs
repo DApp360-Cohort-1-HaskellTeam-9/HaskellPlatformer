@@ -34,6 +34,9 @@ renderGame = do
     let playerPos = (x, y - 4) -- offset
         playerPic = [uncurry translate playerPos playerSprite]
     
+    -- enemies
+    enemiesPic   <- getEnemiesSprites
+    
     -- bg & text pictures
     background   <- renderBackground
     creditsPic   <- scrollCredits
@@ -76,7 +79,8 @@ renderGame = do
         ScenePause     ->
             background ++
             layerBack  ++
-            playerPic  ++ 
+            playerPic  ++
+            enemiesPic ++ 
             layerFront ++
             playerHUD  ++
             text       ++
@@ -99,6 +103,7 @@ renderGame = do
                     lvlSub     ++
                     layerBack  ++
                     playerPic  ++
+                    enemiesPic ++
                     layerFront ++
                     playerHUD  ++
                     text       ++
@@ -107,6 +112,7 @@ renderGame = do
                     background ++
                     layerBack  ++
                     playerPic  ++
+                    enemiesPic ++
                     layerFront ++
                     lvlTitle   ++
                     lvlSub     ++
@@ -120,6 +126,7 @@ renderGame = do
             background ++
             layerBack  ++
             playerPic  ++ 
+            enemiesPic ++
             layerFront ++
             playerHUD  ++
             text       ++
@@ -140,6 +147,10 @@ updateGame sec = do
         SceneLevel -> do
             movePlayer
             incPlayerSprite
+            
+            moveEnemies
+            incEnemiesSprites
+            
             -- ALUT
             playSFX
             -- ENDALUT
@@ -156,6 +167,7 @@ updateGame sec = do
             gTimeRemaining %= (+negate sec)
             
             timeUp
+            checkEnemies
             checkSpikes
             checkDoor
             updateParallax

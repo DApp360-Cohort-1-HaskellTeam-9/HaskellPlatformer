@@ -1,11 +1,15 @@
 module Game.Init where
 
+import Control.Lens
 import Control.Monad.Reader
 
 import Game.AssetManagement
+import Game.Data.Alias
 import Game.Data.Enum
 import Game.Data.Environment
 import Game.Data.State
+
+import System.Random
 
 initEnv :: [String] -> IO Environment
 initEnv args = do
@@ -29,6 +33,7 @@ initState args = do
     env <- ask
     return GameState
         { _gPlayerState   = initPlayer
+        , _gEnemies       = []
         , _gLevelState    = runReader initLevel env
         , _gTotalKeys     = 3
         , _gDoorOpen      = False
@@ -54,6 +59,22 @@ initPlayer = PlayerState
     , _pCollectedKeys = 0
     , _pLives         = 3
     }
+
+initEnemies :: RWSIO [EnemyState]
+initEnemies = do
+    level <- use (gLevelState . lLevelCells)
+    let enemyCells = filter ((`elem` getEnemyCellType) . snd) level
+    enemies <- forM enemyCells (\ (pos,_) -> do
+        rng <- randomRIO (1 :: Int, 4)
+        return EnemyState
+            { _ePosition    = pos
+            , _eSpeed       = (0, 0)
+            , _eIncSpeed    = (2000, 1000) -- just copy player stats
+            , _eMaxSpeed    = (20 * fromIntegral rng, -1000)
+            , _eHeading     = if odd rng then FaceLeft else FaceRight
+            , _eSpriteIndex = fromIntegral rng
+            })
+    return enemies
 
 initLevel :: Reader Environment LevelState
 initLevel = loadLevel minBound

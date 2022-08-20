@@ -14,6 +14,7 @@ import Sound.ALUT as Sound
 data Assets
     = Assets -- Use Assets instead of Sprites?
     { _aPlayer       :: [Picture]
+    , _aEnemy        :: [Picture]
     , _aKey          :: (Picture, CellType)  -- collect keys instead of food
     , _aDoor         :: [(Int, Picture)] -- locked | unlocked by collecting all keys
     , _aBase         :: Picture

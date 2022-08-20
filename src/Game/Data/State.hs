@@ -20,12 +20,23 @@ data PlayerState
     , _pIncSpeed       :: XY
     , _pMaxSpeed       :: XY
     , _pMovement       :: PlayerMovement
-    , _pHeading        :: PlayerFacing
+    , _pHeading        :: CharacterFacing
     , _pSpriteIndex    :: Float -- increment this using sec :: Float
     , _pCollectedKeys  :: Int
     , _pLives          :: Int
     }
 makeLenses ''PlayerState
+
+data EnemyState
+    = EnemyState
+    { _ePosition    :: XY
+    , _eSpeed       :: XY
+    , _eIncSpeed    :: XY
+    , _eMaxSpeed    :: XY
+    , _eHeading     :: CharacterFacing
+    , _eSpriteIndex :: Float
+    }
+makeLenses ''EnemyState
 
 data LevelState
     = LevelState
@@ -37,6 +48,7 @@ makeLenses ''LevelState
 data GameState
     = GameState 
     { _gPlayerState    :: PlayerState
+    , _gEnemies        :: [EnemyState]
     , _gLevelState     :: LevelState
     , _gTotalKeys      :: Int
     , _gDoorOpen       :: Bool
