@@ -155,6 +155,7 @@ updateGame sec = do
             playSFX
             -- ENDALUT
             
+            incScores
             incKeys
             incLives
             
@@ -165,11 +166,12 @@ updateGame sec = do
             gDoorOpen .= door
             
             gTimeRemaining %= (+negate sec)
-            
             timeUp
+            
             checkEnemies
             checkSpikes
             checkDoor
+            
             updateParallax
             updateTransition
         SceneStart -> do
