@@ -56,6 +56,7 @@ initPlayer = PlayerState
     , _pMovement      = MoveStop
     , _pHeading       = FaceRight
     , _pSpriteIndex   = 0
+    , _pScores        = 0
     , _pCollectedKeys = 0
     , _pLives         = 3
     }
