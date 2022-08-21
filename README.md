@@ -4,7 +4,7 @@ Graphics by [OpenGameArt.org](https://opengameart.org), sound effects by [dixona
 Text generator: <https://fontmeme.com/pixel-fonts/>
 
 ## Gameplay
-[TODO](https://www.youtube.com)
+<https://youtu.be/tA3eZQ00bJY>
 
 ## Libraries
 ```
