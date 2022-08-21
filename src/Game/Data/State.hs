@@ -22,7 +22,7 @@ data PlayerState
     , _pMovement       :: PlayerMovement
     , _pHeading        :: CharacterFacing
     , _pSpriteIndex    :: Float -- increment this using sec :: Float
-    , _pScores         :: Int
+    -- , _pScores         :: Int
     , _pCollectedKeys  :: Int
     , _pLives          :: Int
     }

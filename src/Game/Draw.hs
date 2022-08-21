@@ -155,7 +155,8 @@ updateGame sec = do
             playSFX
             -- ENDALUT
             
-            incScores
+            incCoin
+            -- incScores
             incKeys
             incLives
             

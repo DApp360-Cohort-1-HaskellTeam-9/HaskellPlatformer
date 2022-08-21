@@ -163,19 +163,27 @@ checkHitPlayer enemyState = do
 --         Just _  -> do
 --             playSound Coin
 --             return 1
-incScores :: (PureRWS m) => m ()
-incScores = do
+incCoin :: (PureRWS m) => m ()
+incCoin = do
     player <- use (gPlayerState . pPosition)
     let coin = getCoinCellType
     
     hitCoin <- collideWith coin player
     case hitCoin of
-        Just _  -> do
-            gPlayerState . pScores %= (+100)
-            scores <- use (gPlayerState . pScores)
-            logDebug $ "Score = " ++ show scores
+        Just _  -> gTimeRemaining %= (+5)
         Nothing -> return ()
+-- incScores :: (PureRWS m) => m ()
+-- incScores = do
+--     player <- use (gPlayerState . pPosition)
+--     let coin = getCoinCellType
     
+--     hitCoin <- collideWith coin player
+--     case hitCoin of
+--         Just _  -> do
+--             gPlayerState . pScores %= (+100)
+--             scores <- use (gPlayerState . pScores)
+--             logDebug $ "Score = " ++ show scores
+--         Nothing -> return ()
 
 incKeys :: (PureRWS m) => m ()
 incKeys = do
@@ -223,7 +231,7 @@ timeUp = do
 resetPlayer :: (PureRWS m) => m ()
 resetPlayer = do
     currLives    <- use (gPlayerState . pLives )
-    currScores   <- use (gPlayerState . pScores)
+    -- currScores   <- use (gPlayerState . pScores)
     
     level        <- use (gLevelState . lLevelCells)
     let spawnLoc  = fst . head $ filter ((=='P') . snd) level
@@ -231,5 +239,5 @@ resetPlayer = do
     gPlayerState .= initPlayer
     
     gPlayerState . pPosition .= spawnLoc   -- respawn at spawn point
-    gPlayerState . pScores   .= currScores -- restore scores
+    -- gPlayerState . pScores   .= currScores -- restore scores
     gPlayerState . pLives    .= currLives  -- restore lives
